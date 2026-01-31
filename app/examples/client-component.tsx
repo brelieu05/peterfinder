@@ -15,7 +15,6 @@ export default function ClientComponent() {
 
     getUser()
 
-    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null)

@@ -75,14 +75,13 @@ const sampleLostItems: LostItem[] = [
   },
 ];
 
-// Calculate distance between two coordinates using Haversine formula (returns km)
 function calculateDistance(
   lat1: number,
   lon1: number,
   lat2: number,
   lon2: number
 ): number {
-  const R = 6371; // Earth's radius in km
+  const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
@@ -95,7 +94,6 @@ function calculateDistance(
   return R * c;
 }
 
-// Calculate hours since the item was lost
 function calculateHoursSinceLost(lostAt: Date): number {
   const now = new Date();
   return (now.getTime() - lostAt.getTime()) / (1000 * 60 * 60);
@@ -128,31 +126,24 @@ export default function Home() {
     }
   }, []);
 
-  // Rank items based on distance, recency, and item type match
   const rankedItems = useMemo((): RankedItem[] => {
     if (!userData) return [];
 
-    // Calculate distance and hours for each item
     const itemsWithMetrics = sampleLostItems.map((item) => ({
       ...item,
       distance: calculateDistance(userData.latitude, userData.longitude, item.latitude, item.longitude),
       hoursSinceLost: calculateHoursSinceLost(item.lostAt),
     }));
 
-    // Normalize distance and recency to 0-1 scale for fair comparison
     const maxDistance = Math.max(...itemsWithMetrics.map((i) => i.distance));
     const maxHours = Math.max(...itemsWithMetrics.map((i) => i.hoursSinceLost));
 
-    // Sort by combined normalized score (lower = better)
-    // If a type is selected, matching items get a significant boost (lower score)
     const sorted = itemsWithMetrics.sort((a, b) => {
-      // Base scores from distance and recency (each weighted 0.5)
       const distanceScoreA = a.distance / maxDistance;
       const distanceScoreB = b.distance / maxDistance;
       const recencyScoreA = a.hoursSinceLost / maxHours;
       const recencyScoreB = b.hoursSinceLost / maxHours;
 
-      // Type match bonus: if selected type matches, subtract 1 from score (significant boost)
       const typeBoostA = selectedType !== "all" && a.itemType === selectedType ? -1 : 0;
       const typeBoostB = selectedType !== "all" && b.itemType === selectedType ? -1 : 0;
 
@@ -162,14 +153,12 @@ export default function Home() {
       return scoreA - scoreB;
     });
 
-    // Assign ranks (1st, 2nd, 3rd, etc.)
     return sorted.map((item, index) => ({
       ...item,
       rank: index + 1,
     }));
   }, [userData, selectedType]);
 
-  // Log ranked items for debugging
   useEffect(() => {
     if (rankedItems.length > 0) {
       console.log("Ranked items:", rankedItems);

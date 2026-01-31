@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server'
 
-// Example: Upload a file
 export async function uploadFile(
   bucketName: string,
   filePath: string,
@@ -28,7 +27,6 @@ export async function uploadFile(
   return { data }
 }
 
-// Example: Get public URL for a file
 export async function getPublicUrl(bucketName: string, filePath: string) {
   const supabase = await createClient()
   
@@ -39,7 +37,6 @@ export async function getPublicUrl(bucketName: string, filePath: string) {
   return data.publicUrl
 }
 
-// Example: Download a file
 export async function downloadFile(bucketName: string, filePath: string) {
   const supabase = await createClient()
   
@@ -55,7 +52,6 @@ export async function downloadFile(bucketName: string, filePath: string) {
   return { data }
 }
 
-// Example: Delete a file
 export async function deleteFile(bucketName: string, filePath: string) {
   const supabase = await createClient()
   
@@ -71,7 +67,6 @@ export async function deleteFile(bucketName: string, filePath: string) {
   return { success: true }
 }
 
-// Example: List files in a bucket
 export async function listFiles(bucketName: string, folder: string = '') {
   const supabase = await createClient()
   

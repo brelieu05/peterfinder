@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server'
 
-// Example: Fetch all rows from a table
 export async function fetchItems(tableName: string) {
   const supabase = await createClient()
   const { data, error } = await supabase
@@ -17,7 +16,6 @@ export async function fetchItems(tableName: string) {
   return { data }
 }
 
-// Example: Insert a new row
 export async function insertItem(tableName: string, item: Record<string, any>) {
   const supabase = await createClient()
   const { data, error } = await supabase
@@ -34,7 +32,6 @@ export async function insertItem(tableName: string, item: Record<string, any>) {
   return { data }
 }
 
-// Example: Update a row
 export async function updateItem(
   tableName: string,
   id: string,
@@ -56,7 +53,6 @@ export async function updateItem(
   return { data }
 }
 
-// Example: Delete a row
 export async function deleteItem(tableName: string, id: string) {
   const supabase = await createClient()
   const { error } = await supabase
