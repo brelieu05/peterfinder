@@ -38,14 +38,15 @@ interface LostItem {
   lostAt: Date;
 }
 
+// TODO: Why do these point to SF 💀
 const sampleLostItems: LostItem[] = [
   {
     id: "1",
     name: "Blue Wallet",
     description: "Leather wallet with ID and credit cards",
     itemType: "wallet",
-    latitude: 37.7749,
-    longitude: -122.4194,
+    latitude: 33.65,
+    longitude: -117.84,
     lostAt: new Date("2026-01-28T14:30:00"),
   },
   {
@@ -164,7 +165,11 @@ export default function Home() {
     <div className="min-h-screen bg-zinc-50 font-sans dark:bg-black">
       <div className="flex flex-col lg:flex-row lg:h-screen">
         <div className="w-full lg:w-1/2 p-4 lg:p-8 h-64 lg:h-full">
-          <UciMap height="100%" className="h-full" />
+          <UciMap
+            height="100%"
+            className="h-full"
+            items={location ? rankedItems : []}
+          />
         </div>
 
         <main className="w-full lg:w-1/2 flex flex-col gap-8 py-8 px-4 lg:px-8 bg-white dark:bg-black overflow-y-auto">
