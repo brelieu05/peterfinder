@@ -1,26 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Map, {
   NavigationControl,
   FullscreenControl,
   ScaleControl,
   GeolocateControl,
-  Marker,
   GeolocateControlInstance,
 } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { onCampus, UCI_LOCATION } from "@/lib/utils/location";
+import { useUserLocation } from "@/lib/hooks/useUserLocation";
 
 type UciMapProps = {
   className?: string;
   height?: string | number;
   mapStyle?: string;
   zoom?: number;
-};
-
-const UCI_COORDINATES = {
-  latitude: 33.64607201522202,
-  longitude: -117.84273146416213,
 };
 
 export function UciMap({
@@ -30,13 +26,14 @@ export function UciMap({
   zoom = 15,
 }: UciMapProps) {
   const geolocateRef = useRef<GeolocateControlInstance | null>(null);
+  const { location } = useUserLocation();
 
   const mapboxToken =
     process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ?? process.env.MAPBOX_TOKEN;
 
   const [viewState, setViewState] = useState({
-    latitude: UCI_COORDINATES.latitude,
-    longitude: UCI_COORDINATES.longitude,
+    latitude: UCI_LOCATION.latitude,
+    longitude: UCI_LOCATION.longitude,
     zoom,
     bearing: 0,
     pitch: 0,
@@ -66,7 +63,10 @@ export function UciMap({
         mapStyle={mapStyle}
         mapboxAccessToken={mapboxToken}
         onLoad={() => {
-          geolocateRef.current?.trigger();
+          // only go to user's location if they are on campus
+          if (location && onCampus(location.latitude, location.longitude)) {
+            geolocateRef.current?.trigger();
+          }
         }}
       >
         <NavigationControl position="top-left" />
