@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { UciMap } from "@/app/components/UciMap";
+import { useUserLocation } from "@/lib/hooks/useUserLocation";
 
 type ItemType =
   | "wallet"
@@ -116,36 +117,17 @@ export interface RankedItem extends LostItem {
 }
 
 export default function Home() {
-  const [userData, setUserData] = useState<
-    { latitude: number; longitude: number; timestamp: Date } | undefined
-  >(undefined);
+  const { location, loading: locationLoading } = useUserLocation();
   const [selectedType, setSelectedType] = useState<ItemType | "all">("all");
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserData({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            timestamp: new Date(),
-          });
-        },
-        (error) => {
-          console.error("Error getting location:", error.message);
-        },
-      );
-    }
-  }, []);
-
   const rankedItems = useMemo((): RankedItem[] => {
-    if (!userData) return [];
+    if (!location) return [];
 
     const itemsWithMetrics = sampleLostItems.map((item) => ({
       ...item,
       distance: calculateDistance(
-        userData.latitude,
-        userData.longitude,
+        location.latitude,
+        location.longitude,
         item.latitude,
         item.longitude,
       ),
@@ -176,13 +158,7 @@ export default function Home() {
       ...item,
       rank: index + 1,
     }));
-  }, [userData, selectedType]);
-
-  useEffect(() => {
-    if (rankedItems.length > 0) {
-      console.log("Ranked items:", rankedItems);
-    }
-  }, [rankedItems]);
+  }, [selectedType, location]);
 
   return (
     <div className="min-h-screen bg-zinc-50 font-sans dark:bg-black">
@@ -219,11 +195,18 @@ export default function Home() {
             </select>
           </div>
 
-          {!userData && (
+          {locationLoading && (
             <p className="text-zinc-500">Loading your location...</p>
           )}
 
-          {userData && rankedItems.length > 0 && (
+          {!locationLoading && !location && (
+            <p className="text-zinc-500">
+              Location unavailable. Showing items without location ranking.
+            </p>
+            // TODO: show all items
+          )}
+
+          {location && rankedItems.length > 0 && (
             <div className="w-full space-y-4">
               {rankedItems.map((item) => (
                 <div
