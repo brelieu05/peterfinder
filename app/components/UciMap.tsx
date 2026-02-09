@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Map, {
   NavigationControl,
   FullscreenControl,
   ScaleControl,
   GeolocateControl,
   Marker,
+  GeolocateControlInstance,
 } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -28,6 +29,8 @@ export function UciMap({
   mapStyle = "mapbox://styles/mapbox/streets-v12",
   zoom = 15,
 }: UciMapProps) {
+  const geolocateRef = useRef<GeolocateControlInstance | null>(null);
+
   const mapboxToken =
     process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ?? process.env.MAPBOX_TOKEN;
 
@@ -38,30 +41,6 @@ export function UciMap({
     bearing: 0,
     pitch: 0,
   });
-
-  const [userLocation, setUserLocation] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
-
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setUserLocation({ latitude, longitude });
-        setViewState((prev) => ({
-          ...prev,
-          latitude,
-          longitude,
-        }));
-      },
-      () => {
-        // keep default UCI view
-      },
-    );
-  }, []);
 
   if (!mapboxToken) {
     return (
@@ -86,24 +65,19 @@ export function UciMap({
         style={{ width: "100%", height: "100%", borderRadius: "0.75rem" }}
         mapStyle={mapStyle}
         mapboxAccessToken={mapboxToken}
+        onLoad={() => {
+          geolocateRef.current?.trigger();
+        }}
       >
         <NavigationControl position="top-left" />
         <GeolocateControl
+          ref={geolocateRef}
           position="top-left"
           trackUserLocation
           showUserHeading
         />
         <FullscreenControl position="top-right" />
         <ScaleControl />
-        {userLocation && (
-          <Marker
-            latitude={userLocation.latitude}
-            longitude={userLocation.longitude}
-            anchor="center"
-          >
-            <div className="h-3 w-3 rounded-full bg-blue-500 ring-2 ring-white ring-offset-2 ring-offset-blue-500" />
-          </Marker>
-        )}
       </Map>
     </div>
   );
