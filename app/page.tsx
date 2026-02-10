@@ -4,7 +4,6 @@ import { useMemo, useState, useEffect } from "react";
 import { UciMap } from "@/app/components/UciMap";
 import { useUserLocation } from "@/lib/hooks/useUserLocation";
 import { AddItemModal } from "@/app/components/AddItemModal";
-import { Button, Heading } from "@chakra-ui/react";
 
 type ItemType =
   | "wallet"
@@ -337,16 +336,9 @@ export default function Home() {
         </main>
       </div>
 
-      <Button
+      <button
         onClick={() => setIsAddModalOpen(true)}
-        colorScheme="blue"
-        position="fixed"
-        bottom="8"
-        right="8"
-        w="14"
-        h="14"
-        borderRadius="full"
-        shadow="lg"
+        className="fixed bottom-8 right-8 w-14 h-14 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-full shadow-lg transition-colors flex items-center justify-center"
         aria-label="Add item"
       >
         <svg
@@ -363,7 +355,7 @@ export default function Home() {
             d="M12 4.5v15m7.5-7.5h-15"
           />
         </svg>
-      </Button>
+      </button>
 
       <AddItemModal
         isOpen={isAddModalOpen}
