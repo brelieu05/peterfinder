@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Map, {
   NavigationControl,
   GeolocateControl,
@@ -67,6 +67,30 @@ export function AddItemModal({
     bearing: 0,
     pitch: 0,
   });
+
+  useEffect(() => {
+    if (isOpen && !selectedLocation) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const userLocation = {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            };
+            setSelectedLocation(userLocation);
+            setViewState(prev => ({
+              ...prev,
+              latitude: userLocation.latitude,
+              longitude: userLocation.longitude,
+            }));
+          },
+          (error) => {
+            console.error("Error getting location:", error);
+          }
+        );
+      }
+    }
+  }, [isOpen, selectedLocation]);
 
   const showToast = (title: string, description: string, type: "success" | "error") => {
     setToast({ title, description, type });
