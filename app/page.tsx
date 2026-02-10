@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { UciMap } from "@/app/components/UciMap";
 import { useUserLocation } from "@/lib/hooks/useUserLocation";
+import { AddItemModal } from "@/app/components/AddItemModal";
+import { Button } from "@chakra-ui/react";
 
 type ItemType =
   | "wallet"
@@ -119,6 +121,7 @@ export interface RankedItem extends LostItem {
 export default function Home() {
   const { location, loading: locationLoading } = useUserLocation();
   const [selectedType, setSelectedType] = useState<ItemType | "all">("all");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const rankedItems = useMemo((): RankedItem[] => {
     if (!location) return [];
@@ -253,6 +256,42 @@ export default function Home() {
           )}
         </main>
       </div>
+
+      <Button
+        onClick={() => setIsAddModalOpen(true)}
+        colorScheme="blue"
+        position="fixed"
+        bottom="8"
+        right="8"
+        w="14"
+        h="14"
+        borderRadius="full"
+        shadow="lg"
+        aria-label="Add item"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2.5}
+          stroke="currentColor"
+          className="w-6 h-6"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 4.5v15m7.5-7.5h-15"
+          />
+        </svg>
+      </Button>
+
+      <AddItemModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onItemAdded={() => {
+          console.log("Item added successfully");
+        }}
+      />
     </div>
   );
 }
