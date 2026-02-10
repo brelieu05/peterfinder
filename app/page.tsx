@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
-import { UciMap } from "@/app/components/UciMap";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useUserLocation } from "@/lib/hooks/useUserLocation";
 import { AddItemModal } from "@/app/components/AddItemModal";
-import { ItemCard } from "@/app/components/ItemCard";
 import { ItemModal } from "@/app/components/ItemModal";
+import { MapSection } from "@/app/components/MapSection";
+import { DashboardSection } from "@/app/components/DashboardSection";
 
 type ItemType =
   | "wallet"
@@ -17,19 +17,6 @@ type ItemType =
   | "electronics"
   | "clothing"
   | "other";
-
-const itemTypes: { value: ItemType | "all"; label: string }[] = [
-  { value: "all", label: "All Items" },
-  { value: "wallet", label: "Wallet" },
-  { value: "keys", label: "Keys" },
-  { value: "phone", label: "Phone" },
-  { value: "bag", label: "Bag" },
-  { value: "glasses", label: "Glasses" },
-  { value: "jewelry", label: "Jewelry" },
-  { value: "electronics", label: "Electronics" },
-  { value: "clothing", label: "Clothing" },
-  { value: "other", label: "Other" },
-];
 
 interface LostItem {
   id: string;
@@ -43,64 +30,16 @@ interface LostItem {
   islost: boolean;
 }
 
-
-const sampleLostItems: LostItem[] = [
-  {
-    id: "1",
-    name: "Blue Wallet",
-    description: "Leather wallet with ID and credit cards",
-    itemType: "wallet",
-    latitude: 33.65007,
-    longitude: -117.84273,
-    lostAt: new Date("2026-01-28T14:30:00"),
-    email: "finder1@uci.edu",
-    islost: true,
-  },
-  {
-    id: "2",
-    name: "Car Keys",
-    description: "Honda keys with a red keychain",
-    itemType: "keys",
-    latitude: 33.64907,
-    longitude: -117.83873,
-    lostAt: new Date("2026-01-29T09:15:00"),
-    email: "finder2@uci.edu",
-    islost: true,
-  },
-  {
-    id: "3",
-    name: "iPhone 15",
-    description: "Black iPhone with cracked screen protector",
-    itemType: "phone",
-    latitude: 33.64307,
-    longitude: -117.83923,
-    lostAt: new Date("2026-01-29T18:45:00"),
-    email: "finder3@uci.edu",
-    islost: true,
-  },
-  {
-    id: "4",
-    name: "Backpack",
-    description: "Gray North Face backpack with laptop inside",
-    itemType: "bag",
-    latitude: 33.64257,
-    longitude: -117.84673,
-    lostAt: new Date("2026-01-30T08:00:00"),
-    email: "finder4@uci.edu",
-    islost: true,
-  },
-  {
-    id: "5",
-    name: "Prescription Glasses",
-    description: "Black frame glasses in a brown case",
-    itemType: "glasses",
-    latitude: 33.64857,
-    longitude: -117.84673,
-    lostAt: new Date("2026-01-30T11:20:00"),
-    email: "finder5@uci.edu",
-    islost: true,
-  },
-];
+interface ApiItem {
+  id: number;
+  name: string;
+  description: string;
+  type: string;
+  location: string[];
+  itemdate: string;
+  email?: string;
+  islost: boolean;
+}
 
 function calculateDistance(
   lat1: number,
@@ -142,7 +81,7 @@ export default function Home() {
   const [selectedItem, setSelectedItem] = useState<RankedItem | null>(null);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
 
-  const fetchItemsFromDB = async () => {
+  const fetchItemsFromDB = useCallback(async () => {
     setIsLoadingItems(true);
     try {
       const response = await fetch(`/api/items?islost=${showLostItems}`);
@@ -151,7 +90,7 @@ export default function Home() {
       }
       const { data } = await response.json();
       
-      const formattedItems: LostItem[] = data.map((item: any) => ({
+      const formattedItems: LostItem[] = data.map((item: ApiItem) => ({
         id: item.id.toString(),
         name: item.name,
         description: item.description,
@@ -170,12 +109,12 @@ export default function Home() {
     } finally {
       setIsLoadingItems(false);
     }
-  };
+  }, [showLostItems]);
 
   useEffect(() => {
     setItems([]);
     fetchItemsFromDB();
-  }, [showLostItems]);
+  }, [fetchItemsFromDB]);
 
   const rankedItems = useMemo((): RankedItem[] => {
     if (!location) return [];
@@ -220,114 +159,23 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-50 font-sans dark:bg-black">
       <div className="flex flex-col lg:flex-row lg:h-screen">
-        <div className="w-full lg:w-1/2 p-4 lg:p-8 h-64 lg:h-full">
-          <UciMap
-            height="100%"
-            className="h-full"
-            items={location ? rankedItems : []}
-          />
-        </div>
+        <MapSection items={rankedItems} hasLocation={!!location} />
 
-        <main className="w-full lg:w-1/2 flex flex-col gap-8 py-8 px-4 lg:px-8 bg-white dark:bg-black overflow-y-auto">
-          <div className="flex items-center justify-between">
-            <h1 className="text-4xl font-bold text-zinc-900 dark:text-white">
-              {showLostItems ? "Lost" : "Found"} Items Near You
-            </h1>
-            
-            <div className="flex gap-2 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg">
-              <button
-                onClick={() => setShowLostItems(true)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  showLostItems
-                    ? "bg-blue-900"
-                    : ""
-                }`}
-                style={{
-                  color: showLostItems ? '#60a5fa' : '#ffffff'
-                }}
-              >
-                Lost
-              </button>
-              <button
-                onClick={() => setShowLostItems(false)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  !showLostItems
-                    ? "bg-blue-900"
-                    : ""
-                }`}
-                style={{
-                  color: !showLostItems ? '#60a5fa' : '#ffffff'
-                }}
-              >
-                Found
-              </button>
-            </div>
-          </div>
-
-          <div className="w-full">
-            <label
-              htmlFor="itemType"
-              className="block text-sm font-medium mb-2"
-              style={{ color: '#ffffff' }}
-            >
-              Filter by item type
-            </label>
-            <select
-              id="itemType"
-              value={selectedType}
-              onChange={(e) =>
-                setSelectedType(e.target.value as ItemType | "all")
-              }
-              className="w-full p-3 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              style={{ color: '#ffffff' }}
-            >
-              {itemTypes.map((type) => (
-                <option 
-                  key={type.value} 
-                  value={type.value}
-                >
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {isLoadingItems && (
-            <p className="text-zinc-500">Loading items...</p>
-          )}
-
-          {locationLoading && (
-            <p className="text-zinc-500">Loading your location...</p>
-          )}
-
-          {!locationLoading && !location && (
-            <p className="text-zinc-500">
-              Location unavailable. Showing items without location ranking.
-            </p>
-          )}
-
-          {!isLoadingItems && items.length === 0 && (
-            <p className="text-zinc-500">
-              No {showLostItems ? "lost" : "found"} items found.
-            </p>
-          )}
-
-          {location && rankedItems.length > 0 && (
-            <div className="w-full space-y-4">
-              {rankedItems.map((item) => (
-                <ItemCard
-                  key={item.id}
-                  item={item}
-                  selectedType={selectedType}
-                  onClick={(item) => {
-                    setSelectedItem(item);
-                    setIsItemModalOpen(true);
-                  }}
-                />
-              ))}
-            </div>
-          )}
-        </main>
+        <DashboardSection
+          showLostItems={showLostItems}
+          onToggleLostFound={setShowLostItems}
+          selectedType={selectedType}
+          onTypeChange={setSelectedType}
+          isLoadingItems={isLoadingItems}
+          locationLoading={locationLoading}
+          hasLocation={!!location}
+          items={rankedItems}
+          itemCount={items.length}
+          onItemClick={(item) => {
+            setSelectedItem(item);
+            setIsItemModalOpen(true);
+          }}
+        />
       </div>
 
       <button
