@@ -5,25 +5,20 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const islost = searchParams.get("islost");
+    const search = searchParams.get("q") || undefined;
 
-    const result = await fetchItems("items");
+    const options: any = { search };
+    if (islost !== null) {
+      options.islost = islost === "true";
+    }
+
+    const result = await fetchItems("items", options);
 
     if (result.error) {
       return NextResponse.json({ error: result.error }, { status: 500 });
     }
 
-    let items = result.data || [];
-
-    items = items.filter(
-      (item: any) => !item.is_deleted && !item.isresolved
-    );
-
-    if (islost !== null) {
-      const isLostFilter = islost === "true";
-      items = items.filter((item: any) => item.islost === isLostFilter);
-    }
-
-    return NextResponse.json({ data: items }, { status: 200 });
+    return NextResponse.json({ data: result.data || [] }, { status: 200 });
   } catch (error) {
     console.error("Error in GET /api/items:", error);
     return NextResponse.json(

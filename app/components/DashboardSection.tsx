@@ -32,6 +32,8 @@ interface DashboardSectionProps {
   onToggleLostFound: (isLost: boolean) => void;
   selectedType: ItemType | "all";
   onTypeChange: (type: ItemType | "all") => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
   selectedBuilding: Building | null;
   onBuildingSelect: (building: Building | null) => void;
   isLoadingItems: boolean;
@@ -47,6 +49,8 @@ export function DashboardSection({
   onToggleLostFound,
   selectedType,
   onTypeChange,
+  searchQuery,
+  onSearchChange,
   selectedBuilding,
   onBuildingSelect,
   isLoadingItems,
@@ -112,6 +116,50 @@ export function DashboardSection({
             </option>
           ))}
         </select>
+      </div>
+
+      {/* Text Search Section */}
+      <div className="w-full">
+        <label
+          htmlFor="textSearch"
+          className="block text-sm font-medium mb-2"
+          style={{ color: "#ffffff" }}
+        >
+          Search items by name
+        </label>
+        <div className="relative">
+          <input
+            id="textSearch"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search for an item (e.g., Blue Wallet)..."
+            className="w-full p-3 pr-10 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            style={{ color: "#ffffff" }}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => onSearchChange("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              aria-label="Clear search"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Location Search Bar */}

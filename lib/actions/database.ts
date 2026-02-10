@@ -2,11 +2,23 @@
 
 import { createClient } from '@/lib/supabase/server'
 
-export async function fetchItems(tableName: string) {
+export async function fetchItems(tableName: string, options?: { islost?: boolean, search?: string }) {
   const supabase = await createClient()
-  const { data, error } = await supabase
+  let query = supabase
     .from(tableName)
     .select('*')
+    .eq('is_deleted', false)
+    .eq('isresolved', false)
+
+  if (options?.islost !== undefined) {
+    query = query.eq('islost', options.islost)
+  }
+
+  if (options?.search) {
+    query = query.ilike('name', `%${options.search}%`)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     console.error('Error fetching items:', error)

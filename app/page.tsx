@@ -77,6 +77,7 @@ export default function Home() {
   const { location, loading: locationLoading } = useUserLocation();
   const [selectedType, setSelectedType] = useState<ItemType | "all">("all");
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [showLostItems, setShowLostItems] = useState(true);
   const [items, setItems] = useState<LostItem[]>([]);
@@ -87,7 +88,13 @@ export default function Home() {
   const fetchItemsFromDB = useCallback(async () => {
     setIsLoadingItems(true);
     try {
-      const response = await fetch(`/api/items?islost=${showLostItems}`);
+      const url = new URL("/api/items", window.location.origin);
+      url.searchParams.set("islost", showLostItems.toString());
+      if (searchQuery) {
+        url.searchParams.set("q", searchQuery);
+      }
+      
+      const response = await fetch(url.toString());
       if (!response.ok) {
         throw new Error("Failed to fetch items");
       }
@@ -112,7 +119,7 @@ export default function Home() {
     } finally {
       setIsLoadingItems(false);
     }
-  }, [showLostItems]);
+  }, [showLostItems, searchQuery]);
 
   useEffect(() => {
     setItems([]);
@@ -223,6 +230,8 @@ export default function Home() {
           onToggleLostFound={setShowLostItems}
           selectedType={selectedType}
           onTypeChange={setSelectedType}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
           selectedBuilding={selectedBuilding}
           onBuildingSelect={setSelectedBuilding}
           isLoadingItems={isLoadingItems}
