@@ -1,5 +1,7 @@
 import { ItemCard } from "@/app/components/ItemCard";
+import { LocationSearchBar } from "@/app/components/LocationSearchBar";
 import { RankedItem } from "@/app/page";
+import { Building } from "@/lib/utils/buildings";
 
 type ItemType =
   | "wallet"
@@ -30,6 +32,8 @@ interface DashboardSectionProps {
   onToggleLostFound: (isLost: boolean) => void;
   selectedType: ItemType | "all";
   onTypeChange: (type: ItemType | "all") => void;
+  selectedBuilding: Building | null;
+  onBuildingSelect: (building: Building | null) => void;
   isLoadingItems: boolean;
   locationLoading: boolean;
   hasLocation: boolean;
@@ -43,6 +47,8 @@ export function DashboardSection({
   onToggleLostFound,
   selectedType,
   onTypeChange,
+  selectedBuilding,
+  onBuildingSelect,
   isLoadingItems,
   locationLoading,
   hasLocation,
@@ -108,6 +114,12 @@ export function DashboardSection({
         </select>
       </div>
 
+      {/* Location Search Bar */}
+      <LocationSearchBar
+        onLocationSelect={onBuildingSelect}
+        selectedBuilding={selectedBuilding}
+      />
+
       {/* Loading States */}
       {isLoadingItems && <p className="text-zinc-500">Loading items...</p>}
 
@@ -129,7 +141,7 @@ export function DashboardSection({
       )}
 
       {/* Items List */}
-      {hasLocation && items.length > 0 && (
+      {(hasLocation || selectedBuilding) && items.length > 0 && (
         <div className="w-full space-y-4">
           {items.map((item) => (
             <ItemCard

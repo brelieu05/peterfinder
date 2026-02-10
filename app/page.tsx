@@ -6,6 +6,8 @@ import { AddItemModal } from "@/app/components/AddItemModal";
 import { ItemModal } from "@/app/components/ItemModal";
 import { MapSection } from "@/app/components/MapSection";
 import { DashboardSection } from "@/app/components/DashboardSection";
+import { Building } from "@/lib/utils/buildings";
+import { getDistanceBetweenCoordinates } from "@/lib/utils/distance";
 
 type ItemType =
   | "wallet"
@@ -74,6 +76,7 @@ export interface RankedItem extends LostItem {
 export default function Home() {
   const { location, loading: locationLoading } = useUserLocation();
   const [selectedType, setSelectedType] = useState<ItemType | "all">("all");
+  const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [showLostItems, setShowLostItems] = useState(true);
   const [items, setItems] = useState<LostItem[]>([]);
@@ -117,6 +120,56 @@ export default function Home() {
   }, [fetchItemsFromDB]);
 
   const rankedItems = useMemo((): RankedItem[] => {
+    // If filtering by building, use building coordinates instead of user location
+    if (selectedBuilding) {
+      const itemsWithMetrics = items.map((item) => {
+        // Calculate distance from item to selected building in feet
+        const distanceToBuilding = getDistanceBetweenCoordinates(
+          { lat: item.latitude, lng: item.longitude },
+          { lat: selectedBuilding.lat, lng: selectedBuilding.lng }
+        );
+        
+        // Convert feet to km for consistency with user location distance
+        const distanceInKm = distanceToBuilding / 3280.84;
+
+        return {
+          ...item,
+          distance: distanceInKm,
+          distanceToBuilding,
+          hoursSinceLost: calculateHoursSinceLost(item.lostAt),
+        };
+      });
+
+      // Filter items within 2000 feet (reasonable radius for "near" the building)
+      // But still show all items, just rank the closest ones higher
+      const filtered = itemsWithMetrics.filter((item) => item.distanceToBuilding <= 2000);
+      
+      // If no items within range, show all items but sorted by distance
+      const itemsToRank = filtered.length > 0 ? filtered : itemsWithMetrics;
+
+      // Sort primarily by distance to building
+      const sorted = itemsToRank.sort((a, b) => {
+        const typeBoostA =
+          selectedType !== "all" && a.itemType === selectedType ? -500 : 0;
+        const typeBoostB =
+          selectedType !== "all" && b.itemType === selectedType ? -500 : 0;
+
+        // Primary sort: distance to building (in feet)
+        // Secondary sort: time since lost
+        // Tertiary sort: item type match
+        const scoreA = a.distanceToBuilding + a.hoursSinceLost * 10 + typeBoostA;
+        const scoreB = b.distanceToBuilding + b.hoursSinceLost * 10 + typeBoostB;
+
+        return scoreA - scoreB;
+      });
+
+      return sorted.map((item, index) => ({
+        ...item,
+        rank: index + 1,
+      }));
+    }
+
+    // Default behavior: rank by user location
     if (!location) return [];
 
     const itemsWithMetrics = items.map((item) => ({
@@ -154,18 +207,20 @@ export default function Home() {
       ...item,
       rank: index + 1,
     }));
-  }, [selectedType, location, items]);
+  }, [selectedType, selectedBuilding, location, items]);
 
   return (
     <div className="min-h-screen bg-zinc-50 font-sans dark:bg-black">
       <div className="flex flex-col lg:flex-row lg:h-screen">
-        <MapSection items={rankedItems} hasLocation={!!location} />
+        <MapSection items={rankedItems} hasLocation={!!location || !!selectedBuilding} />
 
         <DashboardSection
           showLostItems={showLostItems}
           onToggleLostFound={setShowLostItems}
           selectedType={selectedType}
           onTypeChange={setSelectedType}
+          selectedBuilding={selectedBuilding}
+          onBuildingSelect={setSelectedBuilding}
           isLoadingItems={isLoadingItems}
           locationLoading={locationLoading}
           hasLocation={!!location}
