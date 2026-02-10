@@ -38,15 +38,14 @@ interface LostItem {
   lostAt: Date;
 }
 
-// TODO: Why do these point to SF 💀
 const sampleLostItems: LostItem[] = [
   {
     id: "1",
     name: "Blue Wallet",
     description: "Leather wallet with ID and credit cards",
     itemType: "wallet",
-    latitude: 33.65,
-    longitude: -117.84,
+    latitude: 33.65007,
+    longitude: -117.84273,
     lostAt: new Date("2026-01-28T14:30:00"),
   },
   {
@@ -54,8 +53,8 @@ const sampleLostItems: LostItem[] = [
     name: "Car Keys",
     description: "Honda keys with a red keychain",
     itemType: "keys",
-    latitude: 37.7851,
-    longitude: -122.4056,
+    latitude: 33.64907,
+    longitude: -117.83873,
     lostAt: new Date("2026-01-29T09:15:00"),
   },
   {
@@ -63,8 +62,8 @@ const sampleLostItems: LostItem[] = [
     name: "iPhone 15",
     description: "Black iPhone with cracked screen protector",
     itemType: "phone",
-    latitude: 37.7694,
-    longitude: -122.4862,
+    latitude: 33.64307,
+    longitude: -117.83923,
     lostAt: new Date("2026-01-29T18:45:00"),
   },
   {
@@ -72,8 +71,8 @@ const sampleLostItems: LostItem[] = [
     name: "Backpack",
     description: "Gray North Face backpack with laptop inside",
     itemType: "bag",
-    latitude: 37.8044,
-    longitude: -122.2712,
+    latitude: 33.64257,
+    longitude: -117.84673,
     lostAt: new Date("2026-01-30T08:00:00"),
   },
   {
@@ -81,8 +80,8 @@ const sampleLostItems: LostItem[] = [
     name: "Prescription Glasses",
     description: "Black frame glasses in a brown case",
     itemType: "glasses",
-    latitude: 37.7599,
-    longitude: -122.4148,
+    latitude: 33.64857,
+    longitude: -117.84673,
     lostAt: new Date("2026-01-30T11:20:00"),
   },
 ];
@@ -91,7 +90,7 @@ function calculateDistance(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number,
+  lon2: number
 ): number {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -130,7 +129,7 @@ export default function Home() {
         location.latitude,
         location.longitude,
         item.latitude,
-        item.longitude,
+        item.longitude
       ),
       hoursSinceLost: calculateHoursSinceLost(item.lostAt),
     }));
