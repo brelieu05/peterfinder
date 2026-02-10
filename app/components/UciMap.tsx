@@ -13,6 +13,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { onCampus, UCI_LOCATION } from "@/lib/utils/location";
 import { useUserLocation } from "@/lib/hooks/useUserLocation";
 import { RankedItem } from "../page";
+import { ItemModal } from "./ItemModal";
 
 type UciMapProps = {
   className?: string;
@@ -42,6 +43,19 @@ export function UciMap({
     bearing: 0,
     pitch: 0,
   });
+
+  const [selectedItem, setSelectedItem] = useState<RankedItem | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleMarkerClick = (item: RankedItem) => {
+    setSelectedItem(item);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedItem(null);
+  };
 
   if (!mapboxToken) {
     return (
@@ -88,9 +102,23 @@ export function UciMap({
             latitude={item.latitude}
             longitude={item.longitude}
             anchor="bottom"
+            onClick={(e) => {
+              e.originalEvent.stopPropagation();
+              handleMarkerClick(item);
+            }}
           >
-            <div className="flex flex-col items-center gap-1">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-lg">
+            <div
+              className="flex flex-col items-center gap-1 cursor-pointer transition-transform hover:scale-110"
+              role="button"
+              tabIndex={0}
+              onClick={() => handleMarkerClick(item)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  handleMarkerClick(item);
+                }
+              }}
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-lg hover:bg-blue-700 transition-colors">
                 {item.rank}
               </div>
               <div className="h-2 w-1 rounded-full bg-blue-700" />
@@ -98,6 +126,11 @@ export function UciMap({
           </Marker>
         ))}
       </Map>
+      <ItemModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        item={selectedItem}
+      />
     </div>
   );
 }
