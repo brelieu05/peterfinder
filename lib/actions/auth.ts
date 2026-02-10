@@ -10,7 +10,7 @@ export async function signUp(formData: FormData) {
   const supabase = await createClient()
 
   const email = formData.get('email') as string
-  
+
   if (!isUciEmail(email)) {
     return { error: 'Only UCI email addresses (@uci.edu) are allowed.' }
   }
@@ -34,7 +34,7 @@ export async function signIn(formData: FormData) {
   const supabase = await createClient()
 
   const email = formData.get('email') as string
-  
+
   if (!isUciEmail(email)) {
     return { error: 'Only UCI email addresses (@uci.edu) are allowed.' }
   }
@@ -57,11 +57,20 @@ export async function signIn(formData: FormData) {
 export async function signInWithGoogle() {
   const supabase = await createClient()
   const headersList = await headers()
-  const origin = headersList.get('origin') || headersList.get('host') || ''
-  
-  const redirectTo = origin.startsWith('http') 
-    ? `${origin}/auth/callback`
-    : `https://${origin}/auth/callback`
+
+  // Use environment variable if set, otherwise try to detect from headers
+  let siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+
+  if (!siteUrl) {
+    const host = headersList.get('x-forwarded-host') || headersList.get('host')
+    const protocol = headersList.get('x-forwarded-proto') || 'https'
+    siteUrl = `${protocol}://${host}`
+  }
+
+  // Ensure the URL is properly formatted
+  const base = siteUrl.startsWith('http') ? siteUrl : `https://${siteUrl}`
+  const trimmedBase = base.endsWith('/') ? base.slice(0, -1) : base
+  const redirectTo = `${trimmedBase}/auth/callback`
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',

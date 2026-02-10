@@ -62,6 +62,21 @@ export function DashboardSection({
 }: DashboardSectionProps) {
   return (
     <main className="w-full lg:w-1/2 flex flex-col gap-8 py-8 px-4 lg:px-8 bg-white dark:bg-black overflow-y-auto">
+      {/* Brand Logo - Casual Version */}
+      <div className="flex items-center gap-2 mb-[-1rem] group cursor-default">
+        <div className="flex items-end">
+          <span className="text-3xl font-bold tracking-tight text-blue-600 dark:text-blue-400 lowercase">
+            peter
+          </span>
+          <span className="text-3xl font-medium tracking-tight text-zinc-500 dark:text-zinc-400 lowercase">
+            finder
+          </span>
+          <span className="text-2xl ml-1 group-hover:rotate-12 transition-transform duration-300">
+            🔍
+          </span>
+        </div>
+      </div>
+
       {/* Header with Lost/Found Toggle */}
       <div className="flex items-center justify-between">
         <h1 className="text-4xl font-bold text-zinc-900 dark:text-white">
