@@ -5,6 +5,7 @@ import { UciMap } from "@/app/components/UciMap";
 import { useUserLocation } from "@/lib/hooks/useUserLocation";
 import { AddItemModal } from "@/app/components/AddItemModal";
 import { ItemCard } from "@/app/components/ItemCard";
+import { ItemModal } from "@/app/components/ItemModal";
 
 type ItemType =
   | "wallet"
@@ -38,7 +39,10 @@ interface LostItem {
   latitude: number;
   longitude: number;
   lostAt: Date;
+  email: string;
+  islost: boolean;
 }
+
 
 const sampleLostItems: LostItem[] = [
   {
@@ -49,6 +53,8 @@ const sampleLostItems: LostItem[] = [
     latitude: 33.65007,
     longitude: -117.84273,
     lostAt: new Date("2026-01-28T14:30:00"),
+    email: "finder1@uci.edu",
+    islost: true,
   },
   {
     id: "2",
@@ -58,6 +64,8 @@ const sampleLostItems: LostItem[] = [
     latitude: 33.64907,
     longitude: -117.83873,
     lostAt: new Date("2026-01-29T09:15:00"),
+    email: "finder2@uci.edu",
+    islost: true,
   },
   {
     id: "3",
@@ -67,6 +75,8 @@ const sampleLostItems: LostItem[] = [
     latitude: 33.64307,
     longitude: -117.83923,
     lostAt: new Date("2026-01-29T18:45:00"),
+    email: "finder3@uci.edu",
+    islost: true,
   },
   {
     id: "4",
@@ -76,6 +86,8 @@ const sampleLostItems: LostItem[] = [
     latitude: 33.64257,
     longitude: -117.84673,
     lostAt: new Date("2026-01-30T08:00:00"),
+    email: "finder4@uci.edu",
+    islost: true,
   },
   {
     id: "5",
@@ -85,6 +97,8 @@ const sampleLostItems: LostItem[] = [
     latitude: 33.64857,
     longitude: -117.84673,
     lostAt: new Date("2026-01-30T11:20:00"),
+    email: "finder5@uci.edu",
+    islost: true,
   },
 ];
 
@@ -125,6 +139,8 @@ export default function Home() {
   const [showLostItems, setShowLostItems] = useState(true);
   const [items, setItems] = useState<LostItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(true);
+  const [selectedItem, setSelectedItem] = useState<RankedItem | null>(null);
+  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
 
   const fetchItemsFromDB = async () => {
     setIsLoadingItems(true);
@@ -143,6 +159,8 @@ export default function Home() {
         latitude: parseFloat(item.location[0]),
         longitude: parseFloat(item.location[1]),
         lostAt: new Date(item.itemdate),
+        email: item.email || '',
+        islost: item.islost,
       }));
       
       setItems(formattedItems);
@@ -301,6 +319,10 @@ export default function Home() {
                   key={item.id}
                   item={item}
                   selectedType={selectedType}
+                  onClick={(item) => {
+                    setSelectedItem(item);
+                    setIsItemModalOpen(true);
+                  }}
                 />
               ))}
             </div>
@@ -335,6 +357,15 @@ export default function Home() {
         onItemAdded={() => {
           fetchItemsFromDB();
         }}
+      />
+
+      <ItemModal
+        isOpen={isItemModalOpen}
+        onClose={() => {
+          setIsItemModalOpen(false);
+          setSelectedItem(null);
+        }}
+        item={selectedItem}
       />
     </div>
   );
