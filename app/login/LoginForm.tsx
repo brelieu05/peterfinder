@@ -53,14 +53,9 @@ function LoginForm() {
     setIsGoogleLoading(true)
     setError(null)
     
-    try {
-      const result = await signInWithGoogle()
-      if (result?.error) {
-        setError(result.error)
-        setIsGoogleLoading(false)
-      }
-    } catch {
-      setError('Failed to initiate Google sign-in')
+    const result = await signInWithGoogle()
+    if (result?.error) {
+      setError(result.error)
       setIsGoogleLoading(false)
     }
   }
