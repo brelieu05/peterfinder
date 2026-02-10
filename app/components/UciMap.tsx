@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Map, {
   NavigationControl,
   FullscreenControl,
@@ -8,12 +8,14 @@ import Map, {
   GeolocateControl,
   GeolocateControlInstance,
   Marker,
+  MapRef,
 } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { onCampus, UCI_LOCATION } from "@/lib/utils/location";
 import { useUserLocation } from "@/lib/hooks/useUserLocation";
 import { RankedItem } from "../page";
 import { ItemModal } from "./ItemModal";
+import { Building } from "@/lib/utils/buildings";
 
 type UciMapProps = {
   className?: string;
@@ -21,6 +23,7 @@ type UciMapProps = {
   mapStyle?: string;
   zoom?: number;
   items?: RankedItem[];
+  selectedBuilding?: Building | null;
 };
 
 export function UciMap({
@@ -29,8 +32,10 @@ export function UciMap({
   mapStyle = "mapbox://styles/mapbox/streets-v12",
   zoom = 15,
   items,
+  selectedBuilding,
 }: UciMapProps) {
   const geolocateRef = useRef<GeolocateControlInstance | null>(null);
+  const mapRef = useRef<MapRef | null>(null);
   const { location } = useUserLocation();
 
   const mapboxToken =
@@ -46,6 +51,17 @@ export function UciMap({
 
   const [selectedItem, setSelectedItem] = useState<RankedItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Fly to selected building when it changes
+  useEffect(() => {
+    if (selectedBuilding && mapRef.current) {
+      mapRef.current.flyTo({
+        center: [selectedBuilding.lng, selectedBuilding.lat],
+        zoom: 17,
+        duration: 2000, // 2 second animation
+      });
+    }
+  }, [selectedBuilding]);
 
   const handleMarkerClick = (item: RankedItem) => {
     setSelectedItem(item);
@@ -75,6 +91,7 @@ export function UciMap({
       }
     >
       <Map
+        ref={mapRef}
         {...viewState}
         onMove={(evt) => setViewState(evt.viewState)}
         style={{ width: "100%", height: "100%", borderRadius: "0.75rem" }}
@@ -96,6 +113,21 @@ export function UciMap({
         />
         <FullscreenControl position="top-right" />
         <ScaleControl />
+        
+        {/* Selected Building Label */}
+        {selectedBuilding && (
+          <Marker
+            latitude={selectedBuilding.lat}
+            longitude={selectedBuilding.lng}
+            anchor="center"
+          >
+            <div className="px-2 py-1 bg-green-600 rounded-lg shadow-lg text-sm font-semibold text-white whitespace-nowrap border-2 border-white">
+              {selectedBuilding.name}
+            </div>
+          </Marker>
+        )}
+        
+        {/* Item Markers */}
         {items?.map((item) => (
           <Marker
             key={item.id}

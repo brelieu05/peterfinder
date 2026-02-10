@@ -212,7 +212,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-50 font-sans dark:bg-black">
       <div className="flex flex-col lg:flex-row lg:h-screen">
-        <MapSection items={rankedItems} hasLocation={!!location || !!selectedBuilding} />
+        <MapSection 
+          items={rankedItems} 
+          hasLocation={!!location || !!selectedBuilding}
+          selectedBuilding={selectedBuilding}
+        />
 
         <DashboardSection
           showLostItems={showLostItems}
