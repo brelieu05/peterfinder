@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from "react";
 import { UciMap } from "@/app/components/UciMap";
 import { useUserLocation } from "@/lib/hooks/useUserLocation";
 import { AddItemModal } from "@/app/components/AddItemModal";
+import { ItemCard } from "@/app/components/ItemCard";
 
 type ItemType =
   | "wallet"
@@ -296,41 +297,11 @@ export default function Home() {
           {location && rankedItems.length > 0 && (
             <div className="w-full space-y-4">
               {rankedItems.map((item) => (
-                <div
+                <ItemCard
                   key={item.id}
-                  className="flex items-center justify-between p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900">
-                      <span className="text-lg font-bold text-blue-600 dark:text-blue-300">
-                        {item.rank}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-zinc-900 dark:text-white">
-                          {item.name}
-                        </h3>
-                        <span
-                          className={`px-2 py-0.5 text-xs rounded-full ${
-                            selectedType === item.itemType
-                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                              : "bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"
-                          }`}
-                        >
-                          {item.itemType}
-                        </span>
-                      </div>
-                      <p className="text-sm text-zinc-500">
-                        {item.description}
-                      </p>
-                      <p className="text-xs text-zinc-400 mt-1">
-                        {item.distance.toFixed(1)} km away • Lost{" "}
-                        {item.hoursSinceLost.toFixed(0)} hours ago
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                  item={item}
+                  selectedType={selectedType}
+                />
               ))}
             </div>
           )}
