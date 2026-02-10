@@ -110,7 +110,7 @@ export function ItemCard({ item, selectedType, onClick }: ItemCardProps) {
             {item.description}
           </p>
           <p className="text-xs text-zinc-400 mt-1">
-            {item.distance.toFixed(1)} km away • Lost{" "}
+            {item.distance.toFixed(1)} mi away • Lost{" "}
             {item.hoursSinceLost.toFixed(0)} hours ago
           </p>
           <p className={`text-xs font-medium mt-1 ${getProximityColor()}`}>

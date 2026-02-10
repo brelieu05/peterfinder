@@ -106,7 +106,7 @@ export function ItemModal({ isOpen, onClose, item }: ItemModalProps) {
               Distance from You
             </p>
             <p className="text-sm text-zinc-400">
-              {item.distance.toFixed(2)} km away
+              {item.distance.toFixed(2)} mi away
             </p>
           </div>
 

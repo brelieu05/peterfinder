@@ -49,7 +49,7 @@ function calculateDistance(
   lat2: number,
   lon2: number
 ): number {
-  const R = 6371;
+  const R = 3959; // Earth's radius in miles
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
@@ -129,12 +129,12 @@ export default function Home() {
           { lat: selectedBuilding.lat, lng: selectedBuilding.lng }
         );
         
-        // Convert feet to km for consistency with user location distance
-        const distanceInKm = distanceToBuilding / 3280.84;
+        // Convert feet to mi for consistency with user location distance
+        const distanceInMi = distanceToBuilding / 5280;
 
         return {
           ...item,
-          distance: distanceInKm,
+          distance: distanceInMi,
           distanceToBuilding,
           hoursSinceLost: calculateHoursSinceLost(item.lostAt),
         };
