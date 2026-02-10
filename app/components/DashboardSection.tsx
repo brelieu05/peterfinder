@@ -78,7 +78,7 @@ export function DashboardSection({
               color: showLostItems ? "#60a5fa" : "#ffffff",
             }}
           >
-            Lost
+            I've found something!
           </button>
           <button
             onClick={() => onToggleLostFound(false)}
@@ -89,7 +89,7 @@ export function DashboardSection({
               color: !showLostItems ? "#60a5fa" : "#ffffff",
             }}
           >
-            Found
+            I've lost something!
           </button>
         </div>
       </div>
