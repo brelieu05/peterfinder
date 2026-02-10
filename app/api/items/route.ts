@@ -1,5 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { insertItem } from "@/lib/actions/database";
+import { insertItem, fetchItems } from "@/lib/actions/database";
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const islost = searchParams.get("islost");
+
+    const result = await fetchItems("items");
+
+    if (result.error) {
+      return NextResponse.json({ error: result.error }, { status: 500 });
+    }
+
+    let items = result.data || [];
+
+    items = items.filter(
+      (item: any) => !item.is_deleted && !item.isresolved
+    );
+
+    if (islost !== null) {
+      const isLostFilter = islost === "true";
+      items = items.filter((item: any) => item.islost === isLostFilter);
+    }
+
+    return NextResponse.json({ data: items }, { status: 200 });
+  } catch (error) {
+    console.error("Error in GET /api/items:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {

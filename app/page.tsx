@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { UciMap } from "@/app/components/UciMap";
 import { useUserLocation } from "@/lib/hooks/useUserLocation";
 import { AddItemModal } from "@/app/components/AddItemModal";
-import { Button } from "@chakra-ui/react";
+import { Button, Heading } from "@chakra-ui/react";
 
 type ItemType =
   | "wallet"
@@ -122,11 +122,46 @@ export default function Home() {
   const { location, loading: locationLoading } = useUserLocation();
   const [selectedType, setSelectedType] = useState<ItemType | "all">("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [showLostItems, setShowLostItems] = useState(true);
+  const [items, setItems] = useState<LostItem[]>([]);
+  const [isLoadingItems, setIsLoadingItems] = useState(true);
+
+  const fetchItemsFromDB = async () => {
+    setIsLoadingItems(true);
+    try {
+      const response = await fetch(`/api/items?islost=${showLostItems}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch items");
+      }
+      const { data } = await response.json();
+      
+      const formattedItems: LostItem[] = data.map((item: any) => ({
+        id: item.id.toString(),
+        name: item.name,
+        description: item.description,
+        itemType: item.type as ItemType,
+        latitude: parseFloat(item.location[0]),
+        longitude: parseFloat(item.location[1]),
+        lostAt: new Date(item.itemdate),
+      }));
+      
+      setItems(formattedItems);
+    } catch (error) {
+      console.error("Error fetching items:", error);
+      setItems([]);
+    } finally {
+      setIsLoadingItems(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchItemsFromDB();
+  }, [showLostItems]);
 
   const rankedItems = useMemo((): RankedItem[] => {
     if (!location) return [];
 
-    const itemsWithMetrics = sampleLostItems.map((item) => ({
+    const itemsWithMetrics = items.map((item) => ({
       ...item,
       distance: calculateDistance(
         location.latitude,
@@ -161,7 +196,7 @@ export default function Home() {
       ...item,
       rank: index + 1,
     }));
-  }, [selectedType, location]);
+  }, [selectedType, location, items]);
 
   return (
     <div className="min-h-screen bg-zinc-50 font-sans dark:bg-black">
@@ -175,14 +210,46 @@ export default function Home() {
         </div>
 
         <main className="w-full lg:w-1/2 flex flex-col gap-8 py-8 px-4 lg:px-8 bg-white dark:bg-black overflow-y-auto">
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">
-            Lost Items Near You
-          </h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-4xl font-bold text-zinc-900 dark:text-white">
+              {showLostItems ? "Lost" : "Found"} Items Near You
+            </h1>
+            
+            <div className="flex gap-2 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg">
+              <button
+                onClick={() => setShowLostItems(true)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  showLostItems
+                    ? "bg-blue-900"
+                    : ""
+                }`}
+                style={{
+                  color: showLostItems ? '#60a5fa' : '#ffffff'
+                }}
+              >
+                Lost
+              </button>
+              <button
+                onClick={() => setShowLostItems(false)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  !showLostItems
+                    ? "bg-blue-900"
+                    : ""
+                }`}
+                style={{
+                  color: !showLostItems ? '#60a5fa' : '#ffffff'
+                }}
+              >
+                Found
+              </button>
+            </div>
+          </div>
 
           <div className="w-full">
             <label
               htmlFor="itemType"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+              className="block text-sm font-medium mb-2"
+              style={{ color: '#ffffff' }}
             >
               Filter by item type
             </label>
@@ -192,15 +259,23 @@ export default function Home() {
               onChange={(e) =>
                 setSelectedType(e.target.value as ItemType | "all")
               }
-              className="w-full p-3 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full p-3 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              style={{ color: '#ffffff' }}
             >
               {itemTypes.map((type) => (
-                <option key={type.value} value={type.value}>
+                <option 
+                  key={type.value} 
+                  value={type.value}
+                >
                   {type.label}
                 </option>
               ))}
             </select>
           </div>
+
+          {isLoadingItems && (
+            <p className="text-zinc-500">Loading items...</p>
+          )}
 
           {locationLoading && (
             <p className="text-zinc-500">Loading your location...</p>
@@ -210,7 +285,12 @@ export default function Home() {
             <p className="text-zinc-500">
               Location unavailable. Showing items without location ranking.
             </p>
-            // TODO: show all items
+          )}
+
+          {!isLoadingItems && items.length === 0 && (
+            <p className="text-zinc-500">
+              No {showLostItems ? "lost" : "found"} items found.
+            </p>
           )}
 
           {location && rankedItems.length > 0 && (
@@ -289,7 +369,7 @@ export default function Home() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onItemAdded={() => {
-          console.log("Item added successfully");
+          fetchItemsFromDB();
         }}
       />
     </div>
