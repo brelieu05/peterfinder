@@ -251,38 +251,36 @@ export default function Home() {
    }));
   }
 
-  // Default behavior: rank by user location
-  const itemsWithMetrics = items.map((item) => ({
-   ...item,
-   distance: calculateDistance(
-    location.latitude,
-    location.longitude,
-    item.latitude,
-    item.longitude,
-   ),
-   hoursSinceLost: calculateHoursSinceLost(item.lostAt),
-  }));
+    // Default behavior: rank by user location
+    if (!location) return [];
 
-  const maxDistance = Math.max(...itemsWithMetrics.map((i) => i.distance));
-  const maxHours = Math.max(...itemsWithMetrics.map((i) => i.hoursSinceLost));
+    const itemsWithMetrics = items.map((item) => ({
+      ...item,
+      distance: calculateDistance(
+        location.latitude,
+        location.longitude,
+        item.latitude,
+        item.longitude
+      ),
+      hoursSinceLost: calculateHoursSinceLost(item.lostAt),
+    }));
 
-  const sorted = itemsWithMetrics.sort((a, b) => {
-   const distanceScoreA = a.distance / maxDistance;
-   const distanceScoreB = b.distance / maxDistance;
-   const recencyScoreA = a.hoursSinceLost / maxHours;
-   const recencyScoreB = b.hoursSinceLost / maxHours;
+    const maxDistance = Math.max(...itemsWithMetrics.map((i) => i.distance));
+    const maxHours = Math.max(...itemsWithMetrics.map((i) => i.hoursSinceLost));
 
-   const typeBoostA =
-    selectedType !== "all" && a.itemType === selectedType ? -1 : 0;
-   const typeBoostB =
-    selectedType !== "all" && b.itemType === selectedType ? -1 : 0;
-   const userCategoryBoostA = userLostItemTypes.has(a.itemType) ? -0.5 : 0;
-   const userCategoryBoostB = userLostItemTypes.has(b.itemType) ? -0.5 : 0;
+    const sorted = itemsWithMetrics.sort((a, b) => {
+      const distanceScoreA = a.distance / maxDistance;
+      const distanceScoreB = b.distance / maxDistance;
+      const recencyScoreA = a.hoursSinceLost / maxHours;
+      const recencyScoreB = b.hoursSinceLost / maxHours;
 
-   const scoreA =
-    distanceScoreA + recencyScoreA + typeBoostA + userCategoryBoostA;
-   const scoreB =
-    distanceScoreB + recencyScoreB + typeBoostB + userCategoryBoostB;
+      const typeBoostA =
+        selectedType !== "all" && a.itemType === selectedType ? -1 : 0;
+      const typeBoostB =
+        selectedType !== "all" && b.itemType === selectedType ? -1 : 0;
+
+      const scoreA = distanceScoreA + recencyScoreA + typeBoostA;
+      const scoreB = distanceScoreB + recencyScoreB + typeBoostB;
 
    return scoreA - scoreB;
   });

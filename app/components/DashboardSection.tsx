@@ -247,7 +247,7 @@ export function DashboardSection({
         </p>
       )}
 
-      {/* Items List - show when we have items (even if location failed, items are ranked by recency) */}
+      {/* Items List */}
       {items.length > 0 && (
         <div className="w-full space-y-4">
           {items.map((item) => (
