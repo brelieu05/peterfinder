@@ -8,7 +8,7 @@ import { MapSection } from "@/app/components/MapSection";
 import { DashboardSection } from "@/app/components/DashboardSection";
 import { Building } from "@/lib/utils/buildings";
 import { getDistanceBetweenCoordinates } from "@/lib/utils/distance";
-import { loadSettings } from "@/lib/settings";
+import { loadSettings, type NearbyRadiusMiles } from "@/lib/settings";
 
 type ItemType =
   | "wallet"
@@ -85,10 +85,15 @@ export default function Home() {
   const [showLostItems, setShowLostItems] = useState(true);
   const [items, setItems] = useState<LostItem[]>([]);
 
+  const [nearbyRadiusMiles, setNearbyRadiusMiles] =
+    useState<NearbyRadiusMiles>("all");
+
   useEffect(() => {
-    const { defaultView } = loadSettings();
-    setShowLostItems(defaultView === "lost");
+    const s = loadSettings();
+    setShowLostItems(s.defaultView === "lost");
+    setNearbyRadiusMiles(s.nearbyRadiusMiles);
   }, []);
+
   const [isLoadingItems, setIsLoadingItems] = useState(true);
   const [selectedItem, setSelectedItem] = useState<RankedItem | null>(null);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
@@ -228,11 +233,16 @@ export default function Home() {
     }));
   }, [selectedType, selectedBuilding, location, items]);
 
+  const displayedItems = useMemo((): RankedItem[] => {
+    if (nearbyRadiusMiles === "all" || !location) return rankedItems;
+    return rankedItems.filter((item) => item.distance <= nearbyRadiusMiles);
+  }, [rankedItems, nearbyRadiusMiles, location]);
+
   return (
     <div className="min-h-screen bg-zinc-50 font-sans dark:bg-black">
       <div className="flex flex-col lg:flex-row lg:h-screen">
         <MapSection
-          items={rankedItems}
+          items={displayedItems}
           hasLocation={!!location || !!selectedBuilding}
           selectedBuilding={selectedBuilding}
         />
@@ -249,8 +259,8 @@ export default function Home() {
           isLoadingItems={isLoadingItems}
           locationLoading={locationLoading}
           hasLocation={!!location}
-          items={rankedItems}
-          itemCount={items.length}
+          items={displayedItems}
+          itemCount={displayedItems.length}
           onItemClick={(item) => {
             setSelectedItem(item);
             setIsItemModalOpen(true);

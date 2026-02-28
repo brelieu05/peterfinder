@@ -1,13 +1,17 @@
 const STORAGE_KEY = "peterfinder-settings";
 
+export type NearbyRadiusMiles = "all" | 0.25 | 0.5 | 0.75 | 1 | 1.5;
+
 export interface UserSettings {
   foundNotifications: boolean;
   defaultView: "lost" | "found";
+  nearbyRadiusMiles: NearbyRadiusMiles;
 }
 
 export const defaultSettings: UserSettings = {
   foundNotifications: true,
   defaultView: "lost",
+  nearbyRadiusMiles: "all",
 };
 
 export function loadSettings(): UserSettings {

@@ -81,8 +81,38 @@ export default function SettingsPage() {
               }
               className="w-full p-3 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="found">I&apos;ve lost something</option>
-              <option value="lost">I&apos;ve found something</option>
+              <option value="lost">I&apos;ve lost something</option>
+              <option value="found">I&apos;ve found something</option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="nearbyRadiusMiles"
+              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+            >
+              Show only items near my location
+            </label>
+            <select
+              id="nearbyRadiusMiles"
+              value={settings.nearbyRadiusMiles}
+              onChange={(e) => {
+                const v = e.target.value;
+                update(
+                  "nearbyRadiusMiles",
+                  v === "all"
+                    ? "all"
+                    : (parseFloat(v) as 0.25 | 0.5 | 0.75 | 1 | 1.5)
+                );
+              }}
+              className="w-full p-3 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">Show all items</option>
+              <option value="0.25">Within 0.25 miles</option>
+              <option value="0.5">Within 0.5 miles</option>
+              <option value="0.75">Within 0.75 miles</option>
+              <option value="1">Within 1 mile</option>
+              <option value="1.5">Within 1.5 miles</option>
             </select>
           </div>
 
