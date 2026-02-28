@@ -8,6 +8,7 @@ import { MapSection } from "@/app/components/MapSection";
 import { DashboardSection } from "@/app/components/DashboardSection";
 import { Building } from "@/lib/utils/buildings";
 import { getDistanceBetweenCoordinates } from "@/lib/utils/distance";
+import { loadSettings } from "@/lib/settings";
 
 type ItemType =
   | "wallet"
@@ -76,11 +77,18 @@ export interface RankedItem extends LostItem {
 export default function Home() {
   const { location, loading: locationLoading } = useUserLocation();
   const [selectedType, setSelectedType] = useState<ItemType | "all">("all");
-  const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
+  const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(
+    null
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [showLostItems, setShowLostItems] = useState(true);
   const [items, setItems] = useState<LostItem[]>([]);
+
+  useEffect(() => {
+    const { defaultView } = loadSettings();
+    setShowLostItems(defaultView === "lost");
+  }, []);
   const [isLoadingItems, setIsLoadingItems] = useState(true);
   const [selectedItem, setSelectedItem] = useState<RankedItem | null>(null);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
@@ -93,13 +101,13 @@ export default function Home() {
       if (searchQuery) {
         url.searchParams.set("q", searchQuery);
       }
-      
+
       const response = await fetch(url.toString());
       if (!response.ok) {
         throw new Error("Failed to fetch items");
       }
       const { data } = await response.json();
-      
+
       const formattedItems: LostItem[] = data.map((item: ApiItem) => ({
         id: item.id.toString(),
         name: item.name,
@@ -108,10 +116,10 @@ export default function Home() {
         latitude: parseFloat(item.location[0]),
         longitude: parseFloat(item.location[1]),
         lostAt: new Date(item.itemdate),
-        email: item.email || '',
+        email: item.email || "",
         islost: item.islost,
       }));
-      
+
       setItems(formattedItems);
     } catch (error) {
       console.error("Error fetching items:", error);
@@ -135,7 +143,7 @@ export default function Home() {
           { lat: item.latitude, lng: item.longitude },
           { lat: selectedBuilding.lat, lng: selectedBuilding.lng }
         );
-        
+
         // Convert feet to mi for consistency with user location distance
         const distanceInMi = distanceToBuilding / 5280;
 
@@ -149,8 +157,10 @@ export default function Home() {
 
       // Filter items within 2000 feet (reasonable radius for "near" the building)
       // But still show all items, just rank the closest ones higher
-      const filtered = itemsWithMetrics.filter((item) => item.distanceToBuilding <= 2000);
-      
+      const filtered = itemsWithMetrics.filter(
+        (item) => item.distanceToBuilding <= 2000
+      );
+
       // If no items within range, show all items but sorted by distance
       const itemsToRank = filtered.length > 0 ? filtered : itemsWithMetrics;
 
@@ -164,8 +174,10 @@ export default function Home() {
         // Primary sort: distance to building (in feet)
         // Secondary sort: time since lost
         // Tertiary sort: item type match
-        const scoreA = a.distanceToBuilding + a.hoursSinceLost * 10 + typeBoostA;
-        const scoreB = b.distanceToBuilding + b.hoursSinceLost * 10 + typeBoostB;
+        const scoreA =
+          a.distanceToBuilding + a.hoursSinceLost * 10 + typeBoostA;
+        const scoreB =
+          b.distanceToBuilding + b.hoursSinceLost * 10 + typeBoostB;
 
         return scoreA - scoreB;
       });
@@ -219,8 +231,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-50 font-sans dark:bg-black">
       <div className="flex flex-col lg:flex-row lg:h-screen">
-        <MapSection 
-          items={rankedItems} 
+        <MapSection
+          items={rankedItems}
           hasLocation={!!location || !!selectedBuilding}
           selectedBuilding={selectedBuilding}
         />

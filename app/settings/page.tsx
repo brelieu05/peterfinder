@@ -3,35 +3,12 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Logo } from "@/app/components/Logo";
-
-const STORAGE_KEY = "peterfinder-settings";
-
-interface UserSettings {
-  foundNotifications: boolean;
-  defaultView: "lost" | "found";
-}
-
-const defaultSettings: UserSettings = {
-  foundNotifications: true,
-  defaultView: "lost",
-};
-
-function loadSettings(): UserSettings {
-  if (typeof window === "undefined") return defaultSettings;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultSettings;
-    const parsed = JSON.parse(raw) as Partial<UserSettings>;
-    return { ...defaultSettings, ...parsed };
-  } catch {
-    return defaultSettings;
-  }
-}
-
-function saveSettings(settings: UserSettings): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-}
+import {
+  loadSettings,
+  saveSettings,
+  defaultSettings,
+  type UserSettings,
+} from "@/lib/settings";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
@@ -104,8 +81,8 @@ export default function SettingsPage() {
               }
               className="w-full p-3 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="lost">I&apos;ve lost something</option>
-              <option value="found">I&apos;ve found something</option>
+              <option value="found">I&apos;ve lost something</option>
+              <option value="lost">I&apos;ve found something</option>
             </select>
           </div>
 
