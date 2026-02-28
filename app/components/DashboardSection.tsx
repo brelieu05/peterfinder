@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ItemCard } from "@/app/components/ItemCard";
 import { LocationSearchBar } from "@/app/components/LocationSearchBar";
 import { RankedItem } from "@/app/page";
@@ -62,19 +63,27 @@ export function DashboardSection({
 }: DashboardSectionProps) {
   return (
     <main className="w-full lg:w-1/2 flex flex-col gap-8 py-8 px-4 lg:px-8 bg-white dark:bg-black overflow-y-auto">
-      {/* Brand Logo - Casual Version */}
-      <div className="flex items-center gap-2 mb-[-1rem] group cursor-default">
-        <div className="flex items-end">
-          <span className="text-3xl font-bold tracking-tight text-blue-600 dark:text-blue-400 lowercase">
-            peter
-          </span>
-          <span className="text-3xl font-medium tracking-tight text-zinc-500 dark:text-zinc-400 lowercase">
-            finder
-          </span>
-          <span className="text-2xl ml-1 group-hover:rotate-12 transition-transform duration-300">
-            🔍
-          </span>
+      {/* Brand Logo + Settings link */}
+      <div className="flex items-center justify-between mb-[-1rem]">
+        <div className="flex items-center gap-2 group cursor-default">
+          <div className="flex items-end">
+            <span className="text-3xl font-bold tracking-tight text-blue-600 dark:text-blue-400 lowercase">
+              peter
+            </span>
+            <span className="text-3xl font-medium tracking-tight text-zinc-500 dark:text-zinc-400 lowercase">
+              finder
+            </span>
+            <span className="text-2xl ml-1 group-hover:rotate-12 transition-transform duration-300">
+              🔍
+            </span>
+          </div>
         </div>
+        <Link
+          href="/settings"
+          className="text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+        >
+          Settings
+        </Link>
       </div>
 
       {/* Header with Lost/Found Toggle */}
@@ -93,7 +102,7 @@ export function DashboardSection({
               color: showLostItems ? "#60a5fa" : "#ffffff",
             }}
           >
-            I've found something!
+            I&apos;ve found something!
           </button>
           <button
             onClick={() => onToggleLostFound(false)}
@@ -104,7 +113,7 @@ export function DashboardSection({
               color: !showLostItems ? "#60a5fa" : "#ffffff",
             }}
           >
-            I've lost something!
+            I&apos;ve lost something!
           </button>
         </div>
       </div>
