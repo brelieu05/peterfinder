@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Logo } from "@/app/components/Logo";
 
 const STORAGE_KEY = "peterfinder-settings";
 
@@ -58,16 +59,7 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-zinc-50 dark:bg-black font-sans">
       <div className="max-w-lg mx-auto py-12 px-6">
         <div className="flex items-center justify-between mb-10">
-          <Link
-            href="/"
-            className="flex items-center text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            <span className="text-xl font-bold lowercase">peter</span>
-            <span className="text-xl font-medium text-zinc-500 dark:text-zinc-400 lowercase">
-              finder
-            </span>
-            <span className="text-lg">🔍</span>
-          </Link>
+          <Logo size="sm" asLink />
           <Link
             href="/"
             className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
