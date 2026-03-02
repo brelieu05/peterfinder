@@ -64,15 +64,23 @@ export function DashboardSection({
 }: DashboardSectionProps) {
   return (
     <main className="w-full lg:w-1/2 flex flex-col gap-8 py-8 px-4 lg:px-8 bg-white dark:bg-black overflow-y-auto">
-      {/* Brand Logo + Settings link */}
+      {/* Brand Logo + Primary links */}
       <div className="flex items-center justify-between mb-[-1rem]">
         <Logo size="lg" />
-        <Link
-          href="/settings"
-          className="text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-        >
-          Settings
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/my-items"
+            className="text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+          >
+            My Items
+          </Link>
+          <Link
+            href="/settings"
+            className="text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+          >
+            Settings
+          </Link>
+        </div>
       </div>
 
       {/* Header with Lost/Found Toggle */}
