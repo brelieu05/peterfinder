@@ -88,10 +88,25 @@ export default function Home() {
   const [nearbyRadiusMiles, setNearbyRadiusMiles] =
     useState<NearbyRadiusMiles>("all");
 
+  /** Implicit user model: item types the user has reported losing (same category = rank higher) */
+  const [userLostItemTypes, setUserLostItemTypes] = useState<Set<ItemType>>(
+    new Set()
+  );
+
   useEffect(() => {
     const s = loadSettings();
     setShowLostItems(s.defaultView === "lost");
     setNearbyRadiusMiles(s.nearbyRadiusMiles);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/my-lost-item-types")
+      .then((res) => res.json())
+      .then((data: { types?: string[] }) => {
+        const types = (data.types || []) as ItemType[];
+        setUserLostItemTypes(new Set(types));
+      })
+      .catch(() => setUserLostItemTypes(new Set()));
   }, []);
 
   const [isLoadingItems, setIsLoadingItems] = useState(true);
@@ -175,14 +190,22 @@ export default function Home() {
           selectedType !== "all" && a.itemType === selectedType ? -500 : 0;
         const typeBoostB =
           selectedType !== "all" && b.itemType === selectedType ? -500 : 0;
+        const userCategoryBoostA = userLostItemTypes.has(a.itemType) ? -300 : 0;
+        const userCategoryBoostB = userLostItemTypes.has(b.itemType) ? -300 : 0;
 
         // Primary sort: distance to building (in feet)
         // Secondary sort: time since lost
-        // Tertiary sort: item type match
+        // Tertiary: item type filter match, then implicit user model (same category as user's lost items)
         const scoreA =
-          a.distanceToBuilding + a.hoursSinceLost * 10 + typeBoostA;
+          a.distanceToBuilding +
+          a.hoursSinceLost * 10 +
+          typeBoostA +
+          userCategoryBoostA;
         const scoreB =
-          b.distanceToBuilding + b.hoursSinceLost * 10 + typeBoostB;
+          b.distanceToBuilding +
+          b.hoursSinceLost * 10 +
+          typeBoostB +
+          userCategoryBoostB;
 
         return scoreA - scoreB;
       });
@@ -220,9 +243,13 @@ export default function Home() {
         selectedType !== "all" && a.itemType === selectedType ? -1 : 0;
       const typeBoostB =
         selectedType !== "all" && b.itemType === selectedType ? -1 : 0;
+      const userCategoryBoostA = userLostItemTypes.has(a.itemType) ? -0.5 : 0;
+      const userCategoryBoostB = userLostItemTypes.has(b.itemType) ? -0.5 : 0;
 
-      const scoreA = distanceScoreA + recencyScoreA + typeBoostA;
-      const scoreB = distanceScoreB + recencyScoreB + typeBoostB;
+      const scoreA =
+        distanceScoreA + recencyScoreA + typeBoostA + userCategoryBoostA;
+      const scoreB =
+        distanceScoreB + recencyScoreB + typeBoostB + userCategoryBoostB;
 
       return scoreA - scoreB;
     });
@@ -231,7 +258,7 @@ export default function Home() {
       ...item,
       rank: index + 1,
     }));
-  }, [selectedType, selectedBuilding, location, items]);
+  }, [selectedType, selectedBuilding, location, items, userLostItemTypes]);
 
   const displayedItems = useMemo((): RankedItem[] => {
     if (nearbyRadiusMiles === "all" || !location) return rankedItems;
