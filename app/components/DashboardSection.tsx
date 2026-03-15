@@ -41,6 +41,8 @@ interface DashboardSectionProps {
   isLoadingItems: boolean;
   locationLoading: boolean;
   hasLocation: boolean;
+  locationError?: string | null;
+  locationStale?: boolean;
   items: RankedItem[];
   itemCount: number;
   onItemClick?: (item: RankedItem) => void;
@@ -58,6 +60,8 @@ export function DashboardSection({
   isLoadingItems,
   locationLoading,
   hasLocation,
+  locationError,
+  locationStale,
   items,
   itemCount,
   onItemClick,
@@ -198,7 +202,14 @@ export function DashboardSection({
 
       {!locationLoading && !hasLocation && (
         <p className="text-zinc-500">
-          Location unavailable. Showing items without location ranking.
+          {locationError ?? "Location unavailable. Showing items without location ranking."}
+        </p>
+      )}
+
+      {hasLocation && locationStale && (
+        <p className="text-sm flex items-center gap-1.5 py-1.5 px-2.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700">
+          <span aria-hidden>⚠</span>
+          Location signal lost — showing last known position
         </p>
       )}
 

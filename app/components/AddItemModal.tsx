@@ -9,6 +9,7 @@ import Map, {
 } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { UCI_LOCATION } from "@/lib/utils/location";
+import useUserLocation from "@/lib/hooks/useUserLocation";
 
 interface AddItemModalProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ export function AddItemModal({
   onClose,
   onItemAdded,
 }: AddItemModalProps) {
+  const { location } = useUserLocation();
   const geolocateRef = useRef<GeolocateControlInstance | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
@@ -69,28 +71,18 @@ export function AddItemModal({
   });
 
   useEffect(() => {
-    if (isOpen && !selectedLocation) {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const userLocation = {
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-            };
-            setSelectedLocation(userLocation);
-            setViewState(prev => ({
-              ...prev,
-              latitude: userLocation.latitude,
-              longitude: userLocation.longitude,
-            }));
-          },
-          (error) => {
-            console.error("Error getting location:", error);
-          }
-        );
-      }
+    if (!selectedLocation && location) {
+      setSelectedLocation({
+        latitude: location.latitude,
+        longitude: location.longitude,
+      });
+      setViewState((prev) => ({
+        ...prev,
+        latitude: location.latitude,
+        longitude: location.longitude,
+      }));
     }
-  }, [isOpen, selectedLocation]);
+  }, [location, selectedLocation]);
 
   const showToast = (title: string, description: string, type: "success" | "error") => {
     setToast({ title, description, type });

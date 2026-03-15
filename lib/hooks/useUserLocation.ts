@@ -1,62 +1,119 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
-export type UserLocation = {
+export interface UserLocation {
   latitude: number;
   longitude: number;
-  timestamp: Date;
-};
+  timestamp: number;
+  accuracy: number;
+  isStale: boolean;
+}
 
-type UseUserLocationResult = {
+interface UseUserLocationResult {
   location: UserLocation | null;
   loading: boolean;
   error: string | null;
+}
+
+const DEBOUNCE_MS = 3000;
+const STALE_MS = 30_000;
+
+const watchOptions: PositionOptions = {
+  enableHighAccuracy: true,
+  maximumAge: 10_000,
+  timeout: 15_000,
 };
 
-export function useUserLocation(): UseUserLocationResult {
+function errorMessageFromCode(code: number): string {
+  switch (code) {
+    case 1:
+      return "Location permission denied.";
+    case 2:
+      return "Location unavailable.";
+    case 3:
+      return "Location request timed out.";
+    default:
+      return "Location unavailable.";
+  }
+}
+
+function useUserLocation(): UseUserLocationResult {
   const [location, setLocation] = useState<UserLocation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const staleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    if (!navigator.geolocation) {
-      setTimeout(() => {
-        // defer state updates
-        if (isMounted) {
-          setError("Geolocation is not supported by this browser.");
-          setLoading(false);
-        }
-      }, 0);
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setError("Geolocation is not supported by this browser.");
+      setLoading(false);
       return;
     }
 
-    const successHandler = (position: GeolocationPosition) => {
-      if (isMounted) {
-        setLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          timestamp: new Date(),
-        });
-        setLoading(false);
+    const onSuccess = (position: GeolocationPosition) => {
+      const { latitude, longitude, accuracy } = position.coords;
+      const timestamp = position.timestamp;
+
+      if (staleTimerRef.current) {
+        clearTimeout(staleTimerRef.current);
+        staleTimerRef.current = null;
       }
+
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      debounceTimerRef.current = setTimeout(() => {
+        debounceTimerRef.current = null;
+        const next: UserLocation = {
+          latitude,
+          longitude,
+          timestamp,
+          accuracy: accuracy ?? 0,
+          isStale: false,
+        };
+        setLocation(next);
+        setLoading(false);
+        setError(null);
+
+        staleTimerRef.current = setTimeout(() => {
+          staleTimerRef.current = null;
+          setLocation((prev) =>
+            prev ? { ...prev, isStale: true } : prev
+          );
+        }, STALE_MS);
+      }, DEBOUNCE_MS);
     };
 
-    const errorHandler = (err: GeolocationPositionError) => {
-      if (isMounted) {
-        setError(err.message);
-        setLoading(false);
-      }
+    const onError = (err: GeolocationPositionError) => {
+      setError(errorMessageFromCode(err.code));
+      setLoading(false);
     };
 
-    navigator.geolocation.getCurrentPosition(successHandler, errorHandler);
+    const watchId = navigator.geolocation.watchPosition(
+      onSuccess,
+      onError,
+      watchOptions
+    );
 
     return () => {
-      isMounted = false;
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+      if (staleTimerRef.current) {
+        clearTimeout(staleTimerRef.current);
+        staleTimerRef.current = null;
+      }
+      navigator.geolocation.clearWatch(watchId);
     };
   }, []);
 
   return { location, loading, error };
 }
+
+export { useUserLocation };
+export default useUserLocation;

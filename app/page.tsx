@@ -75,7 +75,8 @@ export interface RankedItem extends LostItem {
 }
 
 export default function Home() {
-  const { location, loading: locationLoading } = useUserLocation();
+  const { location, loading: locationLoading, error: locationError } = useUserLocation();
+  const isStale = location?.isStale ?? false;
   const [selectedType, setSelectedType] = useState<ItemType | "all">("all");
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(
     null
@@ -245,6 +246,7 @@ export default function Home() {
           items={displayedItems}
           hasLocation={!!location || !!selectedBuilding}
           selectedBuilding={selectedBuilding}
+          locationStale={isStale}
         />
 
         <DashboardSection
@@ -259,6 +261,8 @@ export default function Home() {
           isLoadingItems={isLoadingItems}
           locationLoading={locationLoading}
           hasLocation={!!location}
+          locationError={locationError}
+          locationStale={isStale}
           items={displayedItems}
           itemCount={displayedItems.length}
           onItemClick={(item) => {

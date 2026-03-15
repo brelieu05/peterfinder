@@ -24,6 +24,7 @@ type UciMapProps = {
   zoom?: number;
   items?: RankedItem[];
   selectedBuilding?: Building | null;
+  locationStale?: boolean;
 };
 
 export function UciMap({
@@ -33,6 +34,7 @@ export function UciMap({
   zoom = 15,
   items,
   selectedBuilding,
+  locationStale,
 }: UciMapProps) {
   const geolocateRef = useRef<GeolocateControlInstance | null>(null);
   const mapRef = useRef<MapRef | null>(null);
@@ -83,13 +85,23 @@ export function UciMap({
 
   return (
     <div
-      className={className}
+      className={`relative ${className ?? ""}`}
       style={
         typeof height === "number"
           ? { height: `${height}px`, width: "100%" }
           : { height, width: "100%" }
       }
     >
+      {locationStale && (
+        <div
+          className="absolute bottom-3 left-3 z-10 flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 shadow-sm dark:bg-amber-900/30 dark:text-amber-200 dark:border-amber-700"
+          role="status"
+          aria-live="polite"
+        >
+          <span aria-hidden>⚠</span>
+          Location signal lost
+        </div>
+      )}
       <Map
         ref={mapRef}
         {...viewState}
