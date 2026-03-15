@@ -1,9 +1,15 @@
 import Link from "next/link";
+import { useMemo } from "react";
 import { Logo } from "@/app/components/Logo";
 import { ItemCard } from "@/app/components/ItemCard";
 import { LocationSearchBar } from "@/app/components/LocationSearchBar";
 import { RankedItem } from "@/app/page";
 import { Building } from "@/lib/utils/buildings";
+import {
+  getProximityToBuilding,
+  getProximityText,
+  getProximityColorClasses,
+} from "@/lib/utils/proximity";
 
 type ItemType =
   | "wallet"
@@ -43,6 +49,7 @@ interface DashboardSectionProps {
   hasLocation: boolean;
   locationError?: string | null;
   locationStale?: boolean;
+  userLocation: { latitude: number; longitude: number } | null;
   items: RankedItem[];
   itemCount: number;
   onItemClick?: (item: RankedItem) => void;
@@ -62,10 +69,22 @@ export function DashboardSection({
   hasLocation,
   locationError,
   locationStale,
+  userLocation,
   items,
   itemCount,
   onItemClick,
 }: DashboardSectionProps) {
+  const userProximity = useMemo(
+    () =>
+      userLocation
+        ? getProximityToBuilding({
+            lat: userLocation.latitude,
+            lng: userLocation.longitude,
+          })
+        : null,
+    [userLocation?.latitude, userLocation?.longitude]
+  );
+
   return (
     <main className="w-full lg:w-1/2 flex flex-col gap-8 py-8 px-4 lg:px-8 bg-white dark:bg-black overflow-y-auto">
       {/* Brand Logo + Primary links */}
@@ -213,6 +232,14 @@ export function DashboardSection({
         </p>
       )}
 
+      {userProximity && (
+        <p
+          className={`text-sm font-medium ${getProximityColorClasses(userProximity.proximity)}`}
+        >
+          📍 Your location: {getProximityText(userProximity)}
+        </p>
+      )}
+
       {/* Empty State */}
       {!isLoadingItems && itemCount === 0 && (
         <p className="text-zinc-500">
@@ -220,8 +247,8 @@ export function DashboardSection({
         </p>
       )}
 
-      {/* Items List */}
-      {(hasLocation || selectedBuilding) && items.length > 0 && (
+      {/* Items List - show when we have items (even if location failed, items are ranked by recency) */}
+      {items.length > 0 && (
         <div className="w-full space-y-4">
           {items.map((item) => (
             <ItemCard
