@@ -1,7 +1,12 @@
 "use client";
 
 import { RankedItem } from "../page";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import {
+  getProximityToBuilding,
+  getProximityText,
+  getProximityColorClasses,
+} from "@/lib/utils/proximity";
 
 interface ItemModalProps {
   isOpen: boolean;
@@ -11,6 +16,13 @@ interface ItemModalProps {
 
 export function ItemModal({ isOpen, onClose, item }: ItemModalProps) {
   const [copied, setCopied] = useState(false);
+  const proximityResult = useMemo(
+    () =>
+      item
+        ? getProximityToBuilding({ lat: item.latitude, lng: item.longitude })
+        : null,
+    [item?.latitude, item?.longitude]
+  );
 
   if (!item || !isOpen) return null;
 
@@ -120,9 +132,17 @@ export function ItemModal({ isOpen, onClose, item }: ItemModalProps) {
 
           <div>
             <p className="text-sm font-medium text-zinc-300 mb-1">Location</p>
-            <p className="text-sm text-zinc-400 font-mono">
-              {item.latitude.toFixed(4)}, {item.longitude.toFixed(4)}
-            </p>
+            {proximityResult ? (
+              <p
+                className={`text-sm font-medium ${getProximityColorClasses(proximityResult.proximity)}`}
+              >
+                📍 {getProximityText(proximityResult)}
+              </p>
+            ) : (
+              <p className="text-sm text-zinc-400 font-mono">
+                {item.latitude.toFixed(4)}, {item.longitude.toFixed(4)}
+              </p>
+            )}
           </div>
 
           {/* Contact Information */}

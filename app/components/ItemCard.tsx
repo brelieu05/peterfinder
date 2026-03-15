@@ -1,7 +1,10 @@
 import { RankedItem } from "@/app/page";
 import { useMemo } from "react";
-import buildingCatalogue from "@/lib/utils/buildings";
-import { getDistanceBetweenCoordinates } from "@/lib/utils/distance";
+import {
+  getProximityToBuilding,
+  getProximityText,
+  getProximityColorClasses,
+} from "@/lib/utils/proximity";
 
 type ItemType =
   | "wallet"
@@ -21,64 +24,11 @@ interface ItemCardProps {
 }
 
 export function ItemCard({ item, selectedType, onClick }: ItemCardProps) {
-  // Find the closest building to the item
-  const { buildingName, proximity, distanceFeet } = useMemo(() => {
-    const itemCoord = { lat: item.latitude, lng: item.longitude };
-    
-    let closestBuildingName = "Unknown Location";
-    let minDistance = Infinity;
-    
-    // Find the closest building
-    for (const [, building] of Object.entries(buildingCatalogue)) {
-      const distance = getDistanceBetweenCoordinates(
-        itemCoord,
-        { lat: building.lat, lng: building.lng }
-      );
-      
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestBuildingName = building.name;
-      }
-    }
-    
-    // Determine proximity status
-    let proximityStatus: "in" | "near" | "outside";
-    if (minDistance <= 100) {
-      proximityStatus = "in";
-    } else if (minDistance <= 500) {
-      proximityStatus = "near";
-    } else {
-      proximityStatus = "outside";
-    }
-    
-    return {
-      buildingName: closestBuildingName,
-      proximity: proximityStatus,
-      distanceFeet: minDistance,
-    };
-  }, [item.latitude, item.longitude]);
-
-  // Format proximity text
-  const getProximityText = () => {
-    if (proximity === "in") {
-      return `In ${buildingName}`;
-    } else if (proximity === "near") {
-      return `Near ${buildingName} (${Math.round(distanceFeet)}ft)`;
-    } else {
-      return `Outside ${buildingName} (${Math.round(distanceFeet)}ft)`;
-    }
-  };
-
-  // Get proximity color
-  const getProximityColor = () => {
-    if (proximity === "in") {
-      return "text-green-600 dark:text-green-400";
-    } else if (proximity === "near") {
-      return "text-yellow-600 dark:text-yellow-400";
-    } else {
-      return "text-red-600 dark:text-red-400";
-    }
-  };
+  const proximityResult = useMemo(
+    () =>
+      getProximityToBuilding({ lat: item.latitude, lng: item.longitude }),
+    [item.latitude, item.longitude]
+  );
 
   return (
     <div
@@ -113,8 +63,10 @@ export function ItemCard({ item, selectedType, onClick }: ItemCardProps) {
             {item.distance.toFixed(1)} mi away • Lost{" "}
             {item.hoursSinceLost.toFixed(0)} hours ago
           </p>
-          <p className={`text-xs font-medium mt-1 ${getProximityColor()}`}>
-            📍 {getProximityText()}
+          <p
+            className={`text-xs font-medium mt-1 ${getProximityColorClasses(proximityResult.proximity)}`}
+          >
+            📍 {getProximityText(proximityResult)}
           </p>
         </div>
       </div>
