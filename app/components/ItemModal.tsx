@@ -1,7 +1,7 @@
 "use client";
 
 import { RankedItem } from "../page";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   getProximityToBuilding,
   getProximityText,
@@ -23,6 +23,15 @@ export function ItemModal({ isOpen, onClose, item }: ItemModalProps) {
         : null,
     [item?.latitude, item?.longitude]
   );
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!item || !isOpen) return null;
 
