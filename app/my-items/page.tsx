@@ -40,6 +40,17 @@ async function markItemResolved(formData: FormData) {
   revalidatePath("/my-items");
 }
 
+async function deleteItemAction(formData: FormData) {
+  "use server";
+
+  const id = formData.get("id");
+  if (!id) return;
+
+  // item no longer shows up anywhere in the app
+  await updateItem("items", String(id), { is_deleted: true });
+  revalidatePath("/my-items");
+}
+
 export default async function MyItemsPage() {
   const user = await getUser();
 
@@ -57,7 +68,9 @@ export default async function MyItemsPage() {
   const allItems = (data || []) as DbItem[];
 
   const lostItems = allItems.filter((item) => item.islost && !item.isresolved);
-  const foundItems = allItems.filter((item) => !item.islost && !item.isresolved);
+  const foundItems = allItems.filter(
+    (item) => !item.islost && !item.isresolved
+  );
   const resolvedItems = allItems.filter((item) => item.isresolved);
 
   return (
@@ -131,15 +144,26 @@ export default async function MyItemsPage() {
                         <span className="text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">
                           {formatDate(item.itemdate)}
                         </span>
-                        <form action={markItemResolved}>
-                          <input type="hidden" name="id" value={item.id} />
-                          <button
-                            type="submit"
-                            className="px-3 py-1.5 text-xs rounded-md bg-zinc-800 text-zinc-100 hover:bg-zinc-700 dark:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors"
-                          >
-                            Mark as Resolved
-                          </button>
-                        </form>
+                        <div className="flex items-center gap-2">
+                          <form action={markItemResolved}>
+                            <input type="hidden" name="id" value={item.id} />
+                            <button
+                              type="submit"
+                              className="px-3 py-1.5 text-xs rounded-md bg-zinc-800 text-zinc-100 hover:bg-zinc-700 dark:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors"
+                            >
+                              Mark as Resolved
+                            </button>
+                          </form>
+                          <form action={deleteItemAction}>
+                            <input type="hidden" name="id" value={item.id} />
+                            <button
+                              type="submit"
+                              className="px-3 py-1.5 text-xs rounded-md bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </form>
+                        </div>
                       </div>
                     </div>
                   </li>
@@ -187,15 +211,26 @@ export default async function MyItemsPage() {
                         <span className="text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">
                           {formatDate(item.itemdate)}
                         </span>
-                        <form action={markItemResolved}>
-                          <input type="hidden" name="id" value={item.id} />
-                          <button
-                            type="submit"
-                            className="px-3 py-1.5 text-xs rounded-md bg-zinc-800 text-zinc-100 hover:bg-zinc-700 dark:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors"
-                          >
-                            Mark as Resolved
-                          </button>
-                        </form>
+                        <div className="flex items-center gap-2">
+                          <form action={markItemResolved}>
+                            <input type="hidden" name="id" value={item.id} />
+                            <button
+                              type="submit"
+                              className="px-3 py-1.5 text-xs rounded-md bg-zinc-800 text-zinc-100 hover:bg-zinc-700 dark:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors"
+                            >
+                              Mark as Resolved
+                            </button>
+                          </form>
+                          <form action={deleteItemAction}>
+                            <input type="hidden" name="id" value={item.id} />
+                            <button
+                              type="submit"
+                              className="px-3 py-1.5 text-xs rounded-md bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </form>
+                        </div>
                       </div>
                     </div>
                   </li>
@@ -240,9 +275,20 @@ export default async function MyItemsPage() {
                         {item.description}
                       </p>
                     </div>
-                    <span className="text-xs text-zinc-500 dark:text-zinc-500 whitespace-nowrap">
-                      {formatDate(item.itemdate)}
-                    </span>
+                    <div className="flex flex-col items-end gap-2">
+                      <span className="text-xs text-zinc-500 dark:text-zinc-500 whitespace-nowrap">
+                        {formatDate(item.itemdate)}
+                      </span>
+                      <form action={deleteItemAction}>
+                        <input type="hidden" name="id" value={item.id} />
+                        <button
+                          type="submit"
+                          className="px-3 py-1.5 text-xs rounded-md bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    </div>
                   </div>
                 </li>
               ))}
