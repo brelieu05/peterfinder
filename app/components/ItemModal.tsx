@@ -12,10 +12,12 @@ interface ItemModalProps {
   isOpen: boolean;
   onClose: () => void;
   item: RankedItem | null;
+  currentUserEmail?: string;
 }
 
-export function ItemModal({ isOpen, onClose, item }: ItemModalProps) {
+export function ItemModal({ isOpen, onClose, item, currentUserEmail }: ItemModalProps) {
   const [copied, setCopied] = useState(false);
+  const [claimState, setClaimState] = useState<"idle" | "loading" | "done" | "error">("idle");
   const proximityResult = useMemo(
     () =>
       item
@@ -48,7 +50,28 @@ export function ItemModal({ isOpen, onClose, item }: ItemModalProps) {
 
   const handleClose = () => {
     setCopied(false);
+    setClaimState("idle");
     onClose();
+  };
+
+  const handleClaim = async () => {
+    if (!item || claimState === "loading" || claimState === "done") return;
+    setClaimState("loading");
+    try {
+      const res = await fetch("/api/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          item_id: item.id,
+          item_name: item.name,
+          item_owner_email: item.email,
+          item_is_lost: item.islost,
+        }),
+      });
+      setClaimState(res.ok ? "done" : "error");
+    } catch {
+      setClaimState("error");
+    }
   };
 
   const handleCopyEmail = () => {
@@ -169,6 +192,34 @@ export function ItemModal({ isOpen, onClose, item }: ItemModalProps) {
                   {item.email}
                 </p>
               </div>
+              {currentUserEmail && currentUserEmail !== item.email && (
+                <button
+                  onClick={handleClaim}
+                  disabled={claimState === "loading" || claimState === "done"}
+                  className={`w-full py-2.5 rounded-lg font-medium text-sm transition-colors ${
+                    claimState === "done"
+                      ? "bg-green-700 text-green-100 cursor-default"
+                      : claimState === "error"
+                      ? "bg-red-700 text-red-100 hover:bg-red-600"
+                      : claimState === "loading"
+                      ? "bg-zinc-700 text-zinc-400 cursor-wait"
+                      : item.islost
+                      ? "bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                      : "bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
+                  }`}
+                >
+                  {claimState === "done"
+                    ? "Notification sent!"
+                    : claimState === "error"
+                    ? "Failed — try again"
+                    : claimState === "loading"
+                    ? "Sending…"
+                    : item.islost
+                    ? "I found this item!"
+                    : "This is mine!"}
+                </button>
+              )}
+
               <div className="flex gap-2">
                 <a
                   href={`mailto:${item.email}`}

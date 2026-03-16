@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { Logo } from "@/app/components/Logo";
 import { ItemCard } from "@/app/components/ItemCard";
 import { LocationSearchBar } from "@/app/components/LocationSearchBar";
+import { NotificationBell } from "@/app/components/NotificationBell";
 import { RankedItem } from "@/app/page";
 import { Building } from "@/lib/utils/buildings";
 import {
@@ -52,6 +53,7 @@ interface DashboardSectionProps {
   userLocation: { latitude: number; longitude: number } | null;
   items: RankedItem[];
   itemCount: number;
+  currentUserEmail?: string;
   onItemClick?: (item: RankedItem) => void;
 }
 
@@ -72,6 +74,7 @@ export function DashboardSection({
   userLocation,
   items,
   itemCount,
+  currentUserEmail,
   onItemClick,
 }: DashboardSectionProps) {
   const userProximity = useMemo(
@@ -91,6 +94,7 @@ export function DashboardSection({
       <div className="flex items-center justify-between mb-[-1rem]">
         <Logo size="lg" />
         <div className="flex items-center gap-4">
+          {currentUserEmail && <NotificationBell userEmail={currentUserEmail} />}
           <Link
             href="/my-items"
             className="text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
