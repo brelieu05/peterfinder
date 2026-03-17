@@ -55,7 +55,7 @@ function LoginForm() {
       <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow dark:bg-zinc-900">
         <div>
           <h2 className="text-center text-3xl font-bold tracking-tight">
-            Sign in to PeteFinder
+            Sign in to PeterFinder
           </h2>
           <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
             Use your UCI email address (@uci.edu)

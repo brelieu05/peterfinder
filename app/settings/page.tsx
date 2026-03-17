@@ -9,10 +9,12 @@ import {
   defaultSettings,
   type UserSettings,
 } from "@/lib/settings";
+import { createClient } from "@/lib/supabase/client";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
   const [saved, setSaved] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     setSettings(loadSettings());
@@ -30,6 +32,18 @@ export default function SettingsPage() {
     value: UserSettings[K]
   ) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true);
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Error during logout:", error);
+      setLoggingOut(false);
+    }
   };
 
   return (
@@ -130,6 +144,25 @@ export default function SettingsPage() {
             )}
           </div>
         </form>
+
+        <hr className="my-10 border-zinc-200 dark:border-zinc-800" />
+
+        <section aria-label="Account">
+          <h2 className="text-xl font-semibold text-zinc-900 dark:text-white mb-3">
+            Account
+          </h2>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+            Sign out of your Peterfinder account on this device.
+          </p>
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium rounded-lg transition-colors"
+          >
+            {loggingOut ? "Logging out..." : "Log out"}
+          </button>
+        </section>
       </div>
     </div>
   );
