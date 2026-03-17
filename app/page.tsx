@@ -287,11 +287,16 @@ export default function Home() {
       const typeBoostB =
         selectedType !== "all" && b.itemType === selectedType ? -1 : 0;
 
-      const scoreA = distanceScoreA + recencyScoreA + typeBoostA;
-      const scoreB = distanceScoreB + recencyScoreB + typeBoostB;
+      const userCategoryBoostA = userLostItemTypes.has(a.itemType) ? -0.5 : 0;
+      const userCategoryBoostB = userLostItemTypes.has(b.itemType) ? -0.5 : 0;
 
-   return scoreA - scoreB;
-  });
+      const scoreA =
+        distanceScoreA + recencyScoreA + typeBoostA + userCategoryBoostA;
+      const scoreB =
+        distanceScoreB + recencyScoreB + typeBoostB + userCategoryBoostB;
+
+      return scoreA - scoreB;
+    });
 
   return sorted.map((item, index) => ({
    ...item,
