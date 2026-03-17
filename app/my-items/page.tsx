@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { Logo } from "@/app/components/Logo";
 import { fetchItems, updateItem } from "@/lib/actions/database";
 import { getUser } from "@/lib/actions/auth";
+import { findMatches } from "@/lib/utils/matching";
+import { MatchPreview } from "@/app/components/MatchPreview";
 
 interface DbItem {
   id: number;
@@ -60,12 +62,13 @@ export default async function MyItemsPage() {
 
   const email = user.email as string;
 
-  const { data } = await fetchItems("items", {
-    email,
-    includeResolved: true,
-  });
+  const [{ data }, { data: allFoundData }] = await Promise.all([
+    fetchItems("items", { email, includeResolved: true }),
+    fetchItems("items", { islost: false }),
+  ]);
 
   const allItems = (data || []) as DbItem[];
+  const allFoundItems = (allFoundData || []) as DbItem[];
 
   const lostItems = allItems.filter((item) => item.islost && !item.isresolved);
   const foundItems = allItems.filter(
@@ -166,6 +169,7 @@ export default async function MyItemsPage() {
                         </div>
                       </div>
                     </div>
+                    <MatchPreview lostItemName={item.name} matches={findMatches(item, allFoundItems)} />
                   </li>
                 ))}
               </ul>
