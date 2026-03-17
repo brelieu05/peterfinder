@@ -9,6 +9,7 @@ import { DashboardSection } from "@/app/components/DashboardSection";
 import { Building } from "@/lib/utils/buildings";
 import { getDistanceBetweenCoordinates } from "@/lib/utils/distance";
 import { loadSettings, type NearbyRadiusMiles } from "@/lib/settings";
+import { createClient } from "@/lib/supabase/client";
 
 type ItemType =
  | "wallet"
@@ -114,9 +115,16 @@ export default function Home() {
    .catch(() => setUserLostItemTypes(new Set()));
  }, []);
 
+ const [currentUserEmail, setCurrentUserEmail] = useState<string | undefined>();
  const [isLoadingItems, setIsLoadingItems] = useState(true);
  const [selectedItem, setSelectedItem] = useState<RankedItem | null>(null);
  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+
+ useEffect(() => {
+  createClient()
+   .auth.getUser()
+   .then(({ data }) => setCurrentUserEmail(data.user?.email ?? undefined));
+ }, []);
 
  const fetchItemsFromDB = useCallback(async () => {
   setIsLoadingItems(true);
@@ -322,6 +330,7 @@ export default function Home() {
      userLocation={location ? { latitude: location.latitude, longitude: location.longitude } : null}
      items={displayedItems}
      itemCount={displayedItems.length}
+     currentUserEmail={currentUserEmail}
      onItemClick={(item) => {
       setSelectedItem(item);
       setIsItemModalOpen(true);
@@ -365,6 +374,7 @@ export default function Home() {
      setSelectedItem(null);
     }}
     item={selectedItem}
+    currentUserEmail={currentUserEmail}
    />
   </div>
  );
