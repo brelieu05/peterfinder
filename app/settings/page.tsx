@@ -143,6 +143,28 @@ export default function SettingsPage() {
               </span>
             )}
           </div>
+
+          <div className="flex items-start gap-3 pt-2">
+            <input
+              id="useAutomaticLocation"
+              type="checkbox"
+              checked={settings.useAutomaticLocation}
+              onChange={(e) => update("useAutomaticLocation", e.target.checked)}
+              className="mt-1 w-4 h-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+            />
+            <div>
+              <label
+                htmlFor="useAutomaticLocation"
+                className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
+                Use my current location
+              </label>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                When turned off, items are ranked using your selected building or
+                by recency only, instead of your device&apos;s location.
+              </p>
+            </div>
+          </div>
         </form>
 
         <hr className="my-10 border-zinc-200 dark:border-zinc-800" />

@@ -6,9 +6,17 @@ interface MapSectionProps {
   items: RankedItem[];
   selectedBuilding: Building | null;
   locationStale?: boolean;
+  manualLocation?: { latitude: number; longitude: number } | null;
+  onManualLocationChange?: (loc: { latitude: number; longitude: number } | null) => void;
 }
 
-export function MapSection({ items, selectedBuilding, locationStale }: MapSectionProps) {
+export function MapSection({
+  items,
+  selectedBuilding,
+  locationStale,
+  manualLocation,
+  onManualLocationChange,
+}: MapSectionProps) {
   return (
     <div className="w-full lg:w-1/2 p-4 lg:p-8 h-64 lg:h-full">
       <UciMap
@@ -17,6 +25,8 @@ export function MapSection({ items, selectedBuilding, locationStale }: MapSectio
         items={items}
         selectedBuilding={selectedBuilding}
         locationStale={locationStale}
+        manualLocation={manualLocation}
+        onManualLocationChange={onManualLocationChange}
       />
     </div>
   );

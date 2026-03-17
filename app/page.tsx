@@ -93,6 +93,12 @@ export default function Home() {
 
  const [nearbyRadiusMiles, setNearbyRadiusMiles] =
   useState<NearbyRadiusMiles>("all");
+  const [useAutomaticLocation, setUseAutomaticLocation] =
+    useState<boolean>(true);
+  const [manualLocation, setManualLocation] = useState<{
+   latitude: number;
+   longitude: number;
+  } | null>(null);
 
  /** Implicit user model: item types the user has reported losing (same category = rank higher) */
  const [userLostItemTypes, setUserLostItemTypes] = useState<Set<ItemType>>(
@@ -103,6 +109,7 @@ export default function Home() {
   const s = loadSettings();
   setShowLostItems(s.defaultView === "lost");
   setNearbyRadiusMiles(s.nearbyRadiusMiles);
+    setUseAutomaticLocation(s.useAutomaticLocation);
  }, []);
 
  useEffect(() => {
@@ -167,7 +174,22 @@ export default function Home() {
   fetchItemsFromDB();
  }, [fetchItemsFromDB]);
 
- const rankedItems = useMemo((): RankedItem[] => {
+  const effectiveLocation = useMemo(() => {
+    if (!useAutomaticLocation) {
+      if (manualLocation) {
+        return {
+          latitude: manualLocation.latitude,
+          longitude: manualLocation.longitude,
+          isStale: false,
+        };
+      }
+      return null;
+    }
+    if (!location) return null;
+    return location;
+  }, [useAutomaticLocation, manualLocation, location]);
+
+  const rankedItems = useMemo((): RankedItem[] => {
   // If filtering by building, use building coordinates instead of user location
   if (selectedBuilding) {
    const itemsWithMetrics = items.map((item) => {
@@ -229,8 +251,9 @@ export default function Home() {
    }));
   }
 
-  // When location is unavailable (e.g. kCLErrorLocationUnknown), rank by recency only so the app still works
-  if (!location) {
+  // When location is unavailable (e.g. kCLErrorLocationUnknown) or disabled in settings,
+  // rank by recency only so the app still works
+  if (!effectiveLocation) {
    const itemsWithMetrics = items.map((item) => ({
     ...item,
     distance: 0,
@@ -259,14 +282,14 @@ export default function Home() {
    }));
   }
 
-    // Default behavior: rank by user location
-    if (!location) return [];
+    // Default behavior: rank by user location (when enabled)
+    if (!effectiveLocation) return [];
 
     const itemsWithMetrics = items.map((item) => ({
       ...item,
       distance: calculateDistance(
-        location.latitude,
-        location.longitude,
+        effectiveLocation.latitude,
+        effectiveLocation.longitude,
         item.latitude,
         item.longitude
       ),
@@ -302,12 +325,18 @@ export default function Home() {
    ...item,
    rank: index + 1,
   }));
- }, [selectedType, selectedBuilding, location, items, userLostItemTypes]);
+  }, [
+    selectedType,
+    selectedBuilding,
+    effectiveLocation,
+    items,
+    userLostItemTypes,
+  ]);
 
  const displayedItems = useMemo((): RankedItem[] => {
-  if (nearbyRadiusMiles === "all" || !location) return rankedItems;
+  if (nearbyRadiusMiles === "all" || !effectiveLocation) return rankedItems;
   return rankedItems.filter((item) => item.distance <= nearbyRadiusMiles);
- }, [rankedItems, nearbyRadiusMiles, location]);
+ }, [rankedItems, nearbyRadiusMiles, effectiveLocation]);
 
  return (
   <div className="min-h-screen bg-zinc-50 font-sans dark:bg-black">
@@ -316,6 +345,8 @@ export default function Home() {
      items={displayedItems}
      selectedBuilding={selectedBuilding}
      locationStale={isStale}
+    manualLocation={manualLocation}
+    onManualLocationChange={setManualLocation}
     />
 
     <DashboardSection
@@ -329,10 +360,14 @@ export default function Home() {
      onBuildingSelect={setSelectedBuilding}
      isLoadingItems={isLoadingItems}
      locationLoading={locationLoading}
-     hasLocation={!!location}
+     hasLocation={!!effectiveLocation}
      locationError={locationError}
      locationStale={isStale}
-     userLocation={location ? { latitude: location.latitude, longitude: location.longitude } : null}
+     userLocation={
+      effectiveLocation
+       ? { latitude: effectiveLocation.latitude, longitude: effectiveLocation.longitude }
+       : null
+     }
      items={displayedItems}
      itemCount={displayedItems.length}
      currentUserEmail={currentUserEmail}

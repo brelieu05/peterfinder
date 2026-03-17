@@ -25,6 +25,8 @@ type UciMapProps = {
   items?: RankedItem[];
   selectedBuilding?: Building | null;
   locationStale?: boolean;
+  manualLocation?: { latitude: number; longitude: number } | null;
+  onManualLocationChange?: (loc: { latitude: number; longitude: number } | null) => void;
 };
 
 export function UciMap({
@@ -35,6 +37,8 @@ export function UciMap({
   items,
   selectedBuilding,
   locationStale,
+  manualLocation,
+  onManualLocationChange,
 }: UciMapProps) {
   const geolocateRef = useRef<GeolocateControlInstance | null>(null);
   const mapRef = useRef<MapRef | null>(null);
@@ -53,6 +57,17 @@ export function UciMap({
 
   const [selectedItem, setSelectedItem] = useState<RankedItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Fly to manual location when it changes
+  useEffect(() => {
+    if (manualLocation && mapRef.current) {
+      mapRef.current.flyTo({
+        center: [manualLocation.longitude, manualLocation.latitude],
+        zoom: 17,
+        duration: 1000,
+      });
+    }
+  }, [manualLocation]);
 
   // Fly to selected building when it changes
   useEffect(() => {
@@ -109,6 +124,14 @@ export function UciMap({
         style={{ width: "100%", height: "100%", borderRadius: "0.75rem" }}
         mapStyle={mapStyle}
         mapboxAccessToken={mapboxToken}
+        onClick={(e) => {
+          if (onManualLocationChange && e.lngLat) {
+            onManualLocationChange({
+              latitude: e.lngLat.lat,
+              longitude: e.lngLat.lng,
+            });
+          }
+        }}
         onLoad={() => {
           // only go to user's location if they are on campus
           if (location && onCampus(location.latitude, location.longitude)) {
@@ -169,6 +192,22 @@ export function UciMap({
             </div>
           </Marker>
         ))}
+
+        {/* Manual location pin */}
+        {manualLocation && (
+          <Marker
+            latitude={manualLocation.latitude}
+            longitude={manualLocation.longitude}
+            anchor="bottom"
+          >
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-semibold text-white shadow-lg">
+                You
+              </div>
+              <div className="h-2 w-1 rounded-full bg-emerald-700" />
+            </div>
+          </Marker>
+        )}
       </Map>
       <ItemModal
         isOpen={isModalOpen}

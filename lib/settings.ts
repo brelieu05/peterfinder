@@ -6,12 +6,14 @@ export interface UserSettings {
   foundNotifications: boolean;
   defaultView: "lost" | "found";
   nearbyRadiusMiles: NearbyRadiusMiles;
+  useAutomaticLocation: boolean;
 }
 
 export const defaultSettings: UserSettings = {
   foundNotifications: true,
   defaultView: "lost",
   nearbyRadiusMiles: "all",
+  useAutomaticLocation: true,
 };
 
 export function loadSettings(): UserSettings {
