@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import Map, {
   NavigationControl,
   GeolocateControl,
@@ -69,6 +70,16 @@ export function AddItemModal({
     bearing: 0,
     pitch: 0,
   });
+
+  useEffect(() => {
+    createClient()
+      .auth.getUser()
+      .then(({ data }) => {
+        if (data.user?.email) {
+          setFormData((prev) => ({ ...prev, email: data.user!.email! }));
+        }
+      });
+  }, []);
 
   useEffect(() => {
     if (!selectedLocation && location) {
@@ -168,14 +179,14 @@ export function AddItemModal({
         "success"
       );
 
-      setFormData({
+      setFormData((prev) => ({
+        ...prev,
         name: "",
         description: "",
         type: "",
-        email: "",
         image: "",
         islost: true,
-      });
+      }));
       setSelectedLocation(null);
       onItemAdded?.();
       onClose();
@@ -191,14 +202,14 @@ export function AddItemModal({
   };
 
   const handleClose = () => {
-    setFormData({
+    setFormData((prev) => ({
+      ...prev,
       name: "",
       description: "",
       type: "",
-      email: "",
       image: "",
       islost: true,
-    });
+    }));
     setSelectedLocation(null);
     onClose();
   };
@@ -307,23 +318,6 @@ export function AddItemModal({
                 placeholder="Describe the item in detail..."
                 rows={3}
                 className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-zinc-600 resize-none"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-zinc-300 mb-1">
-                Email <span className="text-red-400">*</span>
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                placeholder="your.email@example.com"
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-zinc-600"
               />
             </div>
 
