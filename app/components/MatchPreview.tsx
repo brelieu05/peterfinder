@@ -86,9 +86,6 @@ function MatchDetailView({
         <span className="inline-flex items-center px-2 py-0.5 text-xs rounded-full bg-zinc-700 text-zinc-200 capitalize">
           {item.type}
         </span>
-        <span className="inline-flex items-center px-2 py-0.5 text-xs rounded-full bg-emerald-900/60 text-emerald-300">
-          {score}% match
-        </span>
       </div>
 
       <div>
@@ -155,12 +152,15 @@ function MatchListView({
 }) {
   return (
     <div className="space-y-2">
-      {matches.map((match) => (
+      {matches.map((match, index) => (
         <div
           key={match.item.id}
           className="rounded-lg border border-emerald-800/50 bg-emerald-950/30 p-3"
         >
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start gap-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-900 shrink-0 mt-0.5">
+              <span className="text-xs font-bold text-blue-300">#{index + 1}</span>
+            </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap mb-1">
                 <span className="font-medium text-sm text-white truncate">
@@ -169,9 +169,6 @@ function MatchListView({
                 <span className="inline-flex items-center px-2 py-0.5 text-xs rounded-full bg-zinc-800 text-zinc-200 capitalize shrink-0">
                   {match.item.type}
                 </span>
-                <span className="inline-flex items-center px-2 py-0.5 text-xs rounded-full bg-emerald-900/60 text-emerald-300 shrink-0">
-                  {match.score}% match
-                </span>
               </div>
               <p className="text-xs text-zinc-400 line-clamp-2">
                 {match.item.description}
@@ -179,42 +176,42 @@ function MatchListView({
               <p className="text-xs text-zinc-500 mt-1">
                 Found {formatDate(match.item.itemdate)}
               </p>
+              <div className="mt-2 flex items-center gap-2">
+                <a
+                  href={`mailto:${match.item.email}`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="w-3.5 h-3.5"
+                  >
+                    <path d="M3 4a2 2 0 0 0-2 2v1.161l8.441 4.221a1.25 1.25 0 0 0 1.118 0L19 7.162V6a2 2 0 0 0-2-2H3Z" />
+                    <path d="m19 8.839-7.77 3.885a2.75 2.75 0 0 1-2.46 0L1 8.839V14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.839Z" />
+                  </svg>
+                  Contact finder
+                </a>
+                <button
+                  onClick={() => onSelect(match)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium bg-zinc-700 hover:bg-zinc-600 text-zinc-200 transition-colors"
+                >
+                  View details
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="w-3.5 h-3.5"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="mt-2 flex items-center gap-2">
-            <a
-              href={`mailto:${match.item.email}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-3.5 h-3.5"
-              >
-                <path d="M3 4a2 2 0 0 0-2 2v1.161l8.441 4.221a1.25 1.25 0 0 0 1.118 0L19 7.162V6a2 2 0 0 0-2-2H3Z" />
-                <path d="m19 8.839-7.77 3.885a2.75 2.75 0 0 1-2.46 0L1 8.839V14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.839Z" />
-              </svg>
-              Contact finder
-            </a>
-            <button
-              onClick={() => onSelect(match)}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium bg-zinc-700 hover:bg-zinc-600 text-zinc-200 transition-colors"
-            >
-              View details
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-3.5 h-3.5"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
           </div>
         </div>
       ))}
